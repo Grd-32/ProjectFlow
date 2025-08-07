@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTask } from '../contexts/TaskContext';
 import { Plus, Target, Calendar, TrendingUp } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import GoalModal from '../components/GoalModal';
 
@@ -8,6 +9,9 @@ const Goals = () => {
   const { goals } = useTask();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState('All');
 
   const handleNewGoal = () => {
     setEditingGoal(null);
@@ -23,6 +27,16 @@ const Goals = () => {
     setIsModalOpen(false);
     setEditingGoal(null);
   };
+
+  const filteredGoals = goals.filter(goal => {
+    const matchesSearch = goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         goal.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || goal.status === statusFilter;
+    const matchesCategory = categoryFilter === 'All' || goal.category === categoryFilter;
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
+
+  const categories = [...new Set(goals.map(goal => goal.category))];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -53,8 +67,46 @@ const Goals = () => {
         </button>
       </div>
 
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search goals..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 w-full text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            />
+          </div>
+          
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
+          >
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Completed">Completed</option>
+            <option value="Paused">Paused</option>
+          </select>
+          
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
+          >
+            <option value="All">All Categories</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {goals.map((goal) => (
+        {filteredGoals.map((goal) => (
           <div
             key={goal.id}
             className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow cursor-pointer"

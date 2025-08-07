@@ -31,6 +31,7 @@ const Projects = () => {
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [priorityFilter, setPriorityFilter] = useState<string>('All');
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'gantt'>('grid');
 
@@ -69,7 +70,8 @@ const Projects = () => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || project.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesPriority = priorityFilter === 'All' || project.priority === priorityFilter;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const getStatusColor = (status: string) => {
@@ -205,6 +207,18 @@ const Projects = () => {
             <option value="On Hold">On Hold</option>
             <option value="Completed">Completed</option>
             <option value="Cancelled">Cancelled</option>
+          </select>
+          
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+            className="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
+          >
+            <option value="All">All Priority</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
           </select>
           
           <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">

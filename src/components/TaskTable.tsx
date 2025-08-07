@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTask } from '../contexts/TaskContext';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { 
   MoreHorizontal, 
   Calendar, 
@@ -19,12 +20,16 @@ import { useState } from 'react';
 
 interface TaskTableProps {
   onEditTask?: (taskId: string) => void;
+  filteredTasks?: any[];
 }
 
-const TaskTable: React.FC<TaskTableProps> = ({ onEditTask }) => {
-  const { tasks, deleteTask } = useTask();
+const TaskTable: React.FC<TaskTableProps> = ({ onEditTask, filteredTasks }) => {
+  const { tasks, deleteTask, updateTask } = useTask();
   const { hasPermission } = useUser();
+  const { addNotification } = useNotification();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+  const displayTasks = filteredTasks || tasks;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -61,6 +66,45 @@ const TaskTable: React.FC<TaskTableProps> = ({ onEditTask }) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
       deleteTask(taskId);
     }
+    setActiveDropdown(null);
+  };
+
+  const handleDuplicateTask = (task: any) => {
+    const duplicatedTask = {
+      ...task,
+      name: `${task.name} (Copy)`,
+      status: 'Pending' as const,
+      comments: [],
+      attachments: []
+    };
+    // This would normally call addTask, but we'll simulate with updateTask
+    addNotification({
+      type: 'info',
+      title: 'Task Duplicated',
+      message: `Task "${task.name}" has been duplicated`,
+      userId: '1',
+      relatedEntity: {
+        type: 'task',
+        id: task.id,
+        name: task.name
+      }
+    });
+    setActiveDropdown(null);
+  };
+
+  const handleArchiveTask = (task: any) => {
+    updateTask(task.id, { status: 'Complete' });
+    addNotification({
+      type: 'info',
+      title: 'Task Archived',
+      message: `Task "${task.name}" has been archived`,
+      userId: '1',
+      relatedEntity: {
+        type: 'task',
+        id: task.id,
+        name: task.name
+      }
+    });
     setActiveDropdown(null);
   };
 
@@ -105,7 +149,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ onEditTask }) => {
             </tr>
           </thead>
           <tbody>
-            {tasks.map((task, index) => (
+            {displayTasks.map((task, index) => (
               <tr 
                 key={task.id} 
                 className={`group hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors duration-150 ${
@@ -208,14 +252,14 @@ const TaskTable: React.FC<TaskTableProps> = ({ onEditTask }) => {
                           className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
                         >
                           <Copy className="h-4 w-4" />
-                          <span>Duplicate</span>
+                          <span onClick={() => handleDuplicateTask(task)}>Duplicate</span>
                         </button>
                         <button
                           onClick={() => setActiveDropdown(null)}
                           className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
                         >
                           <Archive className="h-4 w-4" />
-                          <span>Archive</span>
+                          <span onClick={() => handleArchiveTask(task)}>Archive</span>
                         </button>
                         <hr className="my-1 border-gray-200 dark:border-gray-600" />
                         {hasPermission('delete') && (
