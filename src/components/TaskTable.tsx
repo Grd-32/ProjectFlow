@@ -2,6 +2,8 @@ import React from 'react';
 import { useTask } from '../contexts/TaskContext';
 import { useUser } from '../contexts/UserContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { useTimeTracking } from '../contexts/TimeTrackingContext';
+import TimeTracker from './TimeTracker';
 import { 
   MoreHorizontal, 
   Calendar, 
@@ -14,7 +16,9 @@ import {
   Eye,
   Copy,
   Archive,
-  Trash2
+  Trash2,
+  Clock,
+  Tag
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -27,6 +31,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ onEditTask, filteredTasks }) => {
   const { tasks, deleteTask, updateTask } = useTask();
   const { hasPermission } = useUser();
   const { addNotification } = useNotification();
+  const { getTaskTotalTime } = useTimeTracking();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   const displayTasks = filteredTasks || tasks;
@@ -143,6 +148,9 @@ const TaskTable: React.FC<TaskTableProps> = ({ onEditTask, filteredTasks }) => {
               <th className="text-left py-3 px-6 text-sm font-semibold text-gray-900 dark:text-white">
                 Project
               </th>
+              <th className="text-left py-3 px-6 text-sm font-semibold text-gray-900 dark:text-white">
+                Time
+              </th>
               <th className="text-left py-3 px-6 text-sm font-semibold text-gray-900 dark:text-white w-16">
                 Actions
               </th>
@@ -183,6 +191,12 @@ const TaskTable: React.FC<TaskTableProps> = ({ onEditTask, filteredTasks }) => {
                           <span className="text-xs">{task.attachments.length}</span>
                         </div>
                       )}
+                      {task.subtasks && task.subtasks.length > 0 && (
+                        <div className="flex items-center space-x-1 text-gray-400 dark:text-gray-500">
+                          <Tag className="h-3 w-3" />
+                          <span className="text-xs">{task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </td>
@@ -218,6 +232,9 @@ const TaskTable: React.FC<TaskTableProps> = ({ onEditTask, filteredTasks }) => {
                 </td>
                 <td className="py-4 px-6">
                   <span className="text-sm text-gray-600 dark:text-gray-400">{task.project}</span>
+                </td>
+                <td className="py-4 px-6">
+                  <TimeTracker taskId={task.id} compact />
                 </td>
                 <td className="py-4 px-6">
                   <div className="relative">

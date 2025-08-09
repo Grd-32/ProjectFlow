@@ -5,6 +5,11 @@ import { UserProvider } from './contexts/UserContext';
 import { TaskProvider } from './contexts/TaskContext';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { WorkspaceProvider } from './contexts/WorkspaceContext';
+import { TimeTrackingProvider } from './contexts/TimeTrackingContext';
+import { ChatProvider } from './contexts/ChatContext';
+import { IntegrationProvider } from './contexts/IntegrationContext';
+import { AIProvider } from './contexts/AIContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
@@ -22,29 +27,39 @@ function App() {
   return (
     <ThemeProvider>
       <NotificationProvider>
-        <UserProvider>
-          <TaskProvider>
-            <ProjectProvider>
-              <Router>
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/tasks" element={<Tasks />} />
-                    <Route path="/projects" element={<Projects />} />
-                    <Route path="/goals" element={<Goals />} />
-                    <Route path="/docs" element={<Docs />} />
-                    <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/automations" element={<Automations />} />
-                    <Route path="/users" element={<Users />} />
-                    <Route path="/project-management" element={<ProjectManagement />} />
-                    <Route path="/reports" element={<Reports />} />
-                    <Route path="/settings" element={<Settings />} />
-                  </Routes>
-                </Layout>
-              </Router>
-            </ProjectProvider>
-          </TaskProvider>
-        </UserProvider>
+        <IntegrationProvider>
+          <AIProvider>
+            <WorkspaceProvider>
+              <TimeTrackingProvider>
+                <ChatProvider>
+                  <UserProvider>
+                    <TaskProvider>
+                      <ProjectProvider>
+                        <Router>
+                          <Layout>
+                            <Routes>
+                              <Route path="/" element={<Dashboard />} />
+                              <Route path="/tasks" element={<Tasks />} />
+                              <Route path="/projects" element={<Projects />} />
+                              <Route path="/goals" element={<Goals />} />
+                              <Route path="/docs" element={<Docs />} />
+                              <Route path="/calendar" element={<Calendar />} />
+                              <Route path="/automations" element={<Automations />} />
+                              <Route path="/users" element={<Users />} />
+                              <Route path="/project-management" element={<ProjectManagement />} />
+                              <Route path="/reports" element={<Reports />} />
+                              <Route path="/settings" element={<Settings />} />
+                            </Routes>
+                          </Layout>
+                        </Router>
+                      </ProjectProvider>
+                    </TaskProvider>
+                  </UserProvider>
+                </ChatProvider>
+              </TimeTrackingProvider>
+            </WorkspaceProvider>
+          </AIProvider>
+        </IntegrationProvider>
       </NotificationProvider>
     </ThemeProvider>
   );

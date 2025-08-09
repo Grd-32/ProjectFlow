@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTask, Task, TaskComment, TaskAttachment } from '../contexts/TaskContext';
 import { useUser } from '../contexts/UserContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { useTimeTracking } from '../contexts/TimeTrackingContext';
+import TimeTracker from './TimeTracker';
 import { 
   X, 
   Calendar, 
@@ -13,7 +15,12 @@ import {
   Paperclip, 
   Send,
   Download,
-  Upload
+  Upload,
+  Clock,
+  Copy,
+  Archive,
+  UserPlus,
+  Tag
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -26,8 +33,14 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
   const { tasks, addTask, updateTask, deleteTask, addTaskComment, addTaskAttachment, removeTaskAttachment } = useTask();
   const { currentUser, users, hasPermission } = useUser();
   const { addNotification } = useNotification();
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'attachments'>('details');
+  const { getTaskTotalTime } = useTimeTracking();
+  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'attachments' | 'time' | 'subtasks'>('details');
   const [newComment, setNewComment] = useState('');
+  const [subtasks, setSubtasks] = useState<Array<{
+    id: string;
+    name: string;
+    completed: boolean;
+  }>>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -40,6 +53,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
     },
     dueDate: '',
     project: '',
+    tags: [] as string[],
+    estimatedHours: 0,
+    dependencies: [] as string[],
     comments: [] as TaskComment[],
     attachments: [] as TaskAttachment[]
   });
@@ -57,9 +73,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
         assignee: task.assignee,
         dueDate: task.dueDate,
         project: task.project,
+        tags: task.tags || [],
+        estimatedHours: task.estimatedHours || 0,
+        dependencies: task.dependencies || [],
         comments: task.comments,
         attachments: task.attachments
       });
+      setSubtasks(task.subtasks || []);
     }
   }, [task]);
 
@@ -68,6 +88,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
     
     const taskData = {
       ...formData,
+      subtasks,
       comments: formData.comments,
       attachments: formData.attachments
     };
@@ -196,6 +217,84 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
     }));
   };
 
+  const addSubtask = () => {
+    setSubtasks(prev => [...prev, {
+      id: Date.now().toString(),
+      name: '',
+      completed: false
+    }]);
+  };
+
+  const updateSubtask = (id: string, updates: Partial<{ name: string; completed: boolean }>) => {
+    setSubtasks(prev => prev.map(subtask => 
+      subtask.id === id ? { ...subtask, ...updates } : subtask
+    ));
+  };
+
+  const removeSubtask = (id: string) => {
+    setSubtasks(prev => prev.filter(subtask => subtask.id !== id));
+  };
+
+  const addTag = (tag: string) => {
+    if (tag.trim() && !formData.tags.includes(tag.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag.trim()]
+      }));
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  const duplicateTask = () => {
+    if (task) {
+      const duplicatedTask = {
+        ...formData,
+        name: `${formData.name} (Copy)`,
+        status: 'Pending' as const,
+        comments: [],
+        attachments: [],
+        subtasks: []
+      };
+      addTask(duplicatedTask);
+      addNotification({
+        type: 'info',
+        title: 'Task Duplicated',
+        message: `Task "${task.name}" has been duplicated`,
+        userId: currentUser.id,
+        relatedEntity: {
+          type: 'task',
+          id: 'new',
+          name: duplicatedTask.name
+        }
+      });
+      onClose();
+    }
+  };
+
+  const archiveTask = () => {
+    if (task) {
+      updateTask(task.id, { status: 'Complete' });
+      addNotification({
+        type: 'info',
+        title: 'Task Archived',
+        message: `Task "${task.name}" has been archived`,
+        userId: currentUser.id,
+        relatedEntity: {
+          type: 'task',
+          id: task.id,
+          name: task.name
+        }
+      });
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col my-8">
@@ -204,6 +303,24 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
             {isEditing ? 'Edit Task' : 'Create New Task'}
           </h2>
           <div className="flex items-center space-x-2">
+            {isEditing && (
+              <>
+                <button
+                  onClick={duplicateTask}
+                  className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                  title="Duplicate Task"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={archiveTask}
+                  className="p-2 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                  title="Archive Task"
+                >
+                  <Archive className="h-4 w-4" />
+                </button>
+              </>
+            )}
             {isEditing && hasPermission('delete') && (
               <button
                 onClick={handleDelete}
@@ -227,8 +344,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
             <nav className="flex space-x-8 px-6">
               {[
                 { id: 'details', label: 'Details', icon: FileText },
+                { id: 'subtasks', label: `Subtasks (${subtasks.length})`, icon: Tag },
                 { id: 'comments', label: `Comments (${task?.comments.length || 0})`, icon: MessageSquare },
-                { id: 'attachments', label: `Attachments (${task?.attachments.length || 0})`, icon: Paperclip }
+                { id: 'attachments', label: `Attachments (${task?.attachments.length || 0})`, icon: Paperclip },
+                { id: 'time', label: 'Time Tracking', icon: Clock }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -339,19 +458,121 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Project
+              </label>
+              <input
+                type="text"
+                value={formData.project}
+                onChange={(e) => setFormData(prev => ({ ...prev, project: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
+                placeholder="Enter project name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Estimated Hours
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                value={formData.estimatedHours}
+                onChange={(e) => setFormData(prev => ({ ...prev, estimatedHours: Number(e.target.value) }))}
+                className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
+              />
+            </div>
+          </div>
+
+          {/* Tags */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Project
+              Tags
             </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {formData.tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded"
+                >
+                  <Tag className="h-3 w-3 mr-1" />
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="ml-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
             <input
               type="text"
-              value={formData.project}
-              onChange={(e) => setFormData(prev => ({ ...prev, project: e.target.value }))}
+              placeholder="Add tags (press Enter)"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addTag(e.currentTarget.value);
+                  e.currentTarget.value = '';
+                }
+              }}
               className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
-              placeholder="Enter project name"
             />
           </div>
             </form>
+          )}
+
+          {/* Subtasks Tab */}
+          {activeTab === 'subtasks' && task && (
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Subtasks</h3>
+                <button
+                  onClick={addSubtask}
+                  className="flex items-center space-x-2 px-3 py-1 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                >
+                  <Tag className="h-4 w-4" />
+                  <span>Add Subtask</span>
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {subtasks.map((subtask) => (
+                  <div key={subtask.id} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <input
+                      type="checkbox"
+                      checked={subtask.completed}
+                      onChange={(e) => updateSubtask(subtask.id, { completed: e.target.checked })}
+                      className="rounded border-gray-300 dark:border-gray-600"
+                    />
+                    <input
+                      type="text"
+                      value={subtask.name}
+                      onChange={(e) => updateSubtask(subtask.id, { name: e.target.value })}
+                      placeholder="Subtask name"
+                      className="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                    />
+                    <button
+                      onClick={() => removeSubtask(subtask.id)}
+                      className="p-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                
+                {subtasks.length === 0 && (
+                  <div className="text-center py-8">
+                    <Tag className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400">No subtasks yet</p>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {/* Comments Tab */}
@@ -473,6 +694,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ taskId, onClose }) => {
                   ))
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Time Tracking Tab */}
+          {activeTab === 'time' && task && (
+            <div className="p-6">
+              <TimeTracker taskId={task.id} />
             </div>
           )}
         </div>

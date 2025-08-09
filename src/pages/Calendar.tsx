@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTask } from '../contexts/TaskContext';
 import { useProject } from '../contexts/ProjectContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { useTimeTracking } from '../contexts/TimeTrackingContext';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -13,7 +14,9 @@ import {
   Users,
   MapPin,
   Video,
-  Phone
+  Phone,
+  Search,
+  Filter
 } from 'lucide-react';
 import { 
   format, 
@@ -273,11 +276,14 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, date, event })
 const Calendar = () => {
   const { tasks } = useTask();
   const { projects, milestones } = useProject();
+  const { timeEntries } = useTimeTracking();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [eventFilter, setEventFilter] = useState<'all' | 'tasks' | 'meetings' | 'deadlines'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -309,12 +315,20 @@ const Calendar = () => {
     }))
   ];
 
+  // Filter events based on search and filter
+  const filteredEvents = calendarEvents.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         event.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = eventFilter === 'all' || event.type === eventFilter;
+    return matchesSearch && matchesFilter;
+  });
+
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
   };
 
   const getEventsForDate = (date: Date) => {
-    return calendarEvents.filter(event => isSameDay(new Date(event.startDate), date));
+    return filteredEvents.filter(event => isSameDay(new Date(event.startDate), date));
   };
 
   const getEventColor = (type: string, color?: string) => {
@@ -359,6 +373,30 @@ const Calendar = () => {
           <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your schedule and track deadlines</p>
         </div>
         <div className="flex items-center space-x-4">
+          {/* Search and Filters */}
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search events..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-64 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
+              />
+            </div>
+            <select
+              value={eventFilter}
+              onChange={(e) => setEventFilter(e.target.value as any)}
+              className="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
+            >
+              <option value="all">All Events</option>
+              <option value="tasks">Tasks</option>
+              <option value="meetings">Meetings</option>
+              <option value="deadlines">Deadlines</option>
+            </select>
+          </div>
+
           <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <button
               onClick={() => setViewMode('month')}

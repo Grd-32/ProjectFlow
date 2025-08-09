@@ -6,6 +6,8 @@ import { useTask } from '../contexts/TaskContext';
 import { useProject } from '../contexts/ProjectContext';
 import NotificationPanel from './NotificationPanel';
 import UserProfile from './UserProfile';
+import ChatPanel from './ChatPanel';
+import AIAssistant from './AIAssistant';
 import { 
   Search, 
   Filter, 
@@ -20,7 +22,9 @@ import {
   Moon,
   User,
   Settings,
-  LogOut
+  LogOut,
+  MessageSquare,
+  Brain
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -35,6 +39,8 @@ const TopNavigation = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showAI, setShowAI] = useState(false);
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -225,6 +231,24 @@ const TopNavigation = () => {
           {/* Notifications */}
           <NotificationPanel />
 
+          {/* Chat */}
+          <button
+            onClick={() => setShowChat(!showChat)}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title="Team Chat"
+          >
+            <MessageSquare className="h-5 w-5" />
+          </button>
+
+          {/* AI Assistant */}
+          <button
+            onClick={() => setShowAI(!showAI)}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title="AI Assistant"
+          >
+            <Brain className="h-5 w-5" />
+          </button>
+
           {/* Profile */}
           <div className="relative flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -276,6 +300,16 @@ const TopNavigation = () => {
       <UserProfile 
         isOpen={showProfile} 
         onClose={() => setShowProfile(false)} 
+      />
+      
+      <ChatPanel 
+        isOpen={showChat} 
+        onClose={() => setShowChat(false)} 
+      />
+      
+      <AIAssistant 
+        isOpen={showAI} 
+        onClose={() => setShowAI(false)} 
       />
     </div>
   );

@@ -32,6 +32,14 @@ export interface Task {
   };
   dueDate: string;
   project: string;
+  tags: string[];
+  estimatedHours: number;
+  dependencies: string[];
+  subtasks: Array<{
+    id: string;
+    name: string;
+    completed: boolean;
+  }>;
   comments: TaskComment[];
   attachments: TaskAttachment[];
   createdAt: string;
