@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import UserModal from '../components/UserModal';
+import UserInviteModal from '../components/UserInviteModal';
 
 const Users = () => {
   const { users, hasPermission } = useUser();
@@ -22,6 +23,7 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('All');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   const handleNewUser = () => {
     setEditingUser(null);
@@ -76,15 +78,26 @@ const Users = () => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Users</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Manage team members and their access levels</p>
         </div>
-        {hasPermission('manage_users') && (
-          <button
-            onClick={handleNewUser}
-            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add User</span>
-          </button>
-        )}
+        <div className="flex items-center space-x-3">
+          {hasPermission('manage_users') && (
+            <>
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+              >
+                <Mail className="h-4 w-4" />
+                <span>Invite Users</span>
+              </button>
+              <button
+                onClick={handleNewUser}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add User</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Stats */}
@@ -261,6 +274,13 @@ const Users = () => {
         <UserModal
           userId={editingUser}
           onClose={handleCloseModal}
+        />
+      )}
+
+      {showInviteModal && (
+        <UserInviteModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
         />
       )}
     </div>

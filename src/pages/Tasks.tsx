@@ -6,6 +6,8 @@ import TaskTable from '../components/TaskTable';
 import TaskModal from '../components/TaskModal';
 import KanbanBoard from '../components/KanbanBoard';
 import TimeTracker from '../components/TimeTracker';
+import WorkloadView from '../components/WorkloadView';
+import RecurringTaskModal from '../components/RecurringTaskModal';
 import { Plus, Search, Filter, List, Columns, Clock, BarChart3 } from 'lucide-react';
 
 const Tasks = () => {
@@ -17,7 +19,8 @@ const Tasks = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
-  const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'time'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'time' | 'workload'>('list');
+  const [showRecurringModal, setShowRecurringModal] = useState(false);
 
   const handleNewTask = () => {
     setEditingTask(null);
@@ -91,22 +94,41 @@ const Tasks = () => {
             >
               <Clock className="h-4 w-4" />
             </button>
+            <button
+              onClick={() => setViewMode('workload')}
+              className={`px-3 py-1 text-sm rounded transition-colors ${
+                viewMode === 'workload' 
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <BarChart3 className="h-4 w-4" />
+            </button>
           </div>
           
           {hasPermission('create') && (
-            <button
-              onClick={handleNewTask}
-              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              <span>New Task</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowRecurringModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+              >
+                <Clock className="h-4 w-4" />
+                <span>Recurring</span>
+              </button>
+              <button
+                onClick={handleNewTask}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                <span>New Task</span>
+              </button>
+            </div>
           )}
         </div>
       </div>
       
       {/* Filters */}
-      {viewMode !== 'kanban' && (
+      {viewMode !== 'kanban' && viewMode !== 'workload' && (
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
             <div className="relative flex-1">
@@ -158,11 +180,23 @@ const Tasks = () => {
           <TimeTracker />
         </div>
       )}
+      {viewMode === 'workload' && (
+        <div className="flex-1 overflow-auto p-6">
+          <WorkloadView />
+        </div>
+      )}
       
       {isModalOpen && (
         <TaskModal
           taskId={editingTask}
           onClose={handleCloseModal}
+        />
+      )}
+
+      {showRecurringModal && (
+        <RecurringTaskModal
+          isOpen={showRecurringModal}
+          onClose={() => setShowRecurringModal(false)}
         />
       )}
     </div>
