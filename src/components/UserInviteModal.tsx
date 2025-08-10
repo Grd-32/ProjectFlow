@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { useNotification } from '../contexts/Notification Context';
+import { useNotification } from '../contexts/NotificationContext';
 import { X, Mail, Send, Users, Copy, Check } from 'lucide-react';
 
 interface UserInviteModalProps {
