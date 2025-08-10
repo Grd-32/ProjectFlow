@@ -12,7 +12,17 @@ import {
   Plus,
   X,
   Edit3,
-  Trash2
+  Trash2,
+  Download,
+  Image,
+  File,
+  Video,
+  Phone,
+  Settings,
+  Search,
+  UserPlus,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -26,16 +36,34 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
     channels, 
     messages, 
     activeChannel, 
+    onlineUsers,
+    typingUsers,
     setActiveChannel, 
     sendMessage, 
     addReaction,
     editMessage,
-    deleteMessage 
+    deleteMessage,
+    markChannelAsRead,
+    setTyping,
+    uploadFile,
+    addChannel
   } = useChat();
   const { users, currentUser } = useUser();
   const [newMessage, setNewMessage] = useState('');
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showChannelSettings, setShowChannelSettings] = useState(false);
+  const [showNewChannelForm, setShowNewChannelForm] = useState(false);
+  const [newChannelData, setNewChannelData] = useState({
+    name: '',
+    description: '',
+    type: 'team' as const,
+    isPrivate: false
+  });
+  const [isTyping, setIsTyping] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,11 +73,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
     scrollToBottom();
   }, [messages, activeChannel]);
 
+  useEffect(() => {
+    if (activeChannel) {
+      markChannelAsRead(activeChannel);
+    }
+  }, [activeChannel, markChannelAsRead]);
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessage.trim() && activeChannel) {
       sendMessage(activeChannel, newMessage.trim());
       setNewMessage('');
+      setIsTyping(false);
+      setTyping(activeChannel, false);
     }
   };
 
@@ -70,10 +106,59 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
     if (activeChannel) {
       addReaction(messageId, activeChannel, emoji);
     }
+    setShowEmojiPicker(false);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0 && activeChannel) {
+      Array.from(files).forEach(file => {
+        uploadFile(activeChannel, file);
+      });
+    }
+  };
+
+  const handleTyping = (value: string) => {
+    setNewMessage(value);
+    if (activeChannel) {
+      if (!isTyping && value.length > 0) {
+        setIsTyping(true);
+        setTyping(activeChannel, true);
+      } else if (isTyping && value.length === 0) {
+        setIsTyping(false);
+        setTyping(activeChannel, false);
+      }
+    }
+  };
+
+  const handleCreateChannel = (e: React.FormEvent) => {
+    e.preventDefault();
+    addChannel({
+      ...newChannelData,
+      members: [currentUser.id]
+    });
+    setNewChannelData({
+      name: '',
+      description: '',
+      type: 'team',
+      isPrivate: false
+    });
+    setShowNewChannelForm(false);
   };
 
   const currentChannel = channels.find(c => c.id === activeChannel);
   const channelMessages = activeChannel ? messages[activeChannel] || [] : [];
+  const currentTypingUsers = activeChannel ? typingUsers[activeChannel] || [] : [];
+
+  const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡', '🎉', '🚀', '👏', '🔥'];
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   if (!isOpen) return null;
 
@@ -93,45 +178,116 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
             <h3 className="font-semibold text-gray-900 dark:text-white">
               {currentChannel?.name || 'Select Channel'}
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {currentChannel?.members.length} members
-            </p>
+            <div className="flex items-center space-x-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {currentChannel?.members.length} members
+              </p>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {onlineUsers.filter(userId => currentChannel?.members.includes(userId)).length} online
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+            title={isMuted ? 'Unmute notifications' : 'Mute notifications'}
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+          <button
+            onClick={() => setShowChannelSettings(!showChannelSettings)}
+            className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+          <button
+            onClick={onClose}
+            className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Channel List */}
       <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Channels</span>
+          <button
+            onClick={() => setShowNewChannelForm(true)}
+            className="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 rounded"
+          >
+            <Plus className="h-3 w-3" />
+          </button>
+        </div>
         <div className="flex space-x-1 overflow-x-auto">
           {channels.map((channel) => (
             <button
               key={channel.id}
               onClick={() => setActiveChannel(channel.id)}
-              className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
+              className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors relative ${
                 activeChannel === channel.id
                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               {channel.name}
+              {channel.unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {channel.unreadCount > 9 ? '9+' : channel.unreadCount}
+                </span>
+              )}
             </button>
           ))}
         </div>
       </div>
+
+      {/* New Channel Form */}
+      {showNewChannelForm && (
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+          <form onSubmit={handleCreateChannel} className="space-y-3">
+            <input
+              type="text"
+              placeholder="Channel name"
+              value={newChannelData.name}
+              onChange={(e) => setNewChannelData(prev => ({ ...prev, name: e.target.value }))}
+              className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+              required
+            />
+            <div className="flex space-x-2">
+              <button
+                type="submit"
+                className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Create
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewChannelForm(false)}
+                className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {channelMessages.map((message) => (
           <div key={message.id} className="group">
             <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 relative">
                 <span className="text-white text-xs font-medium">{message.authorInitials}</span>
+                {onlineUsers.includes(message.authorId) && (
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
@@ -154,6 +310,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           handleEditMessage(message.id, e.currentTarget.value);
+                        } else if (e.key === 'Escape') {
+                          setEditingMessage(null);
                         }
                       }}
                       className="w-full px-2 py-1 text-sm bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded"
@@ -169,20 +327,68 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{message.content}</p>
+                  <>
+                    {message.type === 'file' ? (
+                      <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 max-w-xs">
+                        <div className="flex items-center space-x-2">
+                          <File className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                              {message.fileName}
+                            </p>
+                            {message.fileSize && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {formatFileSize(message.fileSize)}
+                              </p>
+                            )}
+                          </div>
+                          <button className="p-1 text-gray-400 hover:text-blue-600 rounded">
+                            <Download className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        {message.content.split(' ').map((word, index) => {
+                          if (word.startsWith('@')) {
+                            return (
+                              <span key={index} className="text-blue-600 dark:text-blue-400 font-medium">
+                                {word}{' '}
+                              </span>
+                            );
+                          }
+                          return word + ' ';
+                        })}
+                      </p>
+                    )}
+                  </>
                 )}
 
                 {/* Reactions */}
                 {message.reactions && message.reactions.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {message.reactions.map((reaction, index) => (
+                    {message.reactions.reduce((acc: any[], reaction) => {
+                      const existing = acc.find(r => r.emoji === reaction.emoji);
+                      if (existing) {
+                        existing.count++;
+                        existing.users.push(reaction.userName);
+                      } else {
+                        acc.push({
+                          emoji: reaction.emoji,
+                          count: 1,
+                          users: [reaction.userName]
+                        });
+                      }
+                      return acc;
+                    }, []).map((reaction, index) => (
                       <button
                         key={index}
                         onClick={() => handleReaction(message.id, reaction.emoji)}
                         className="flex items-center space-x-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                        title={reaction.users.join(', ')}
                       >
                         <span>{reaction.emoji}</span>
-                        <span className="text-gray-600 dark:text-gray-400">1</span>
+                        <span className="text-gray-600 dark:text-gray-400">{reaction.count}</span>
                       </button>
                     ))}
                   </div>
@@ -209,14 +415,57 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
         ))}
+
+        {/* Typing Indicator */}
+        {currentTypingUsers.length > 0 && (
+          <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex space-x-1">
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+            <span>
+              {currentTypingUsers.length === 1 
+                ? `${users.find(u => u.id === currentTypingUsers[0])?.name} is typing...`
+                : `${currentTypingUsers.length} people are typing...`
+              }
+            </span>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Emoji Picker */}
+      {showEmojiPicker && (
+        <div className="absolute bottom-16 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 z-60">
+          <div className="grid grid-cols-5 gap-2">
+            {emojis.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => handleReaction(channelMessages[channelMessages.length - 1]?.id, emoji)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-lg"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Message Input */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            multiple
+            className="hidden"
+          />
           <button
             type="button"
+            onClick={() => fileInputRef.current?.click()}
             className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
           >
             <Paperclip className="h-4 w-4" />
@@ -224,12 +473,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
           <input
             type="text"
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => handleTyping(e.target.value)}
             placeholder={`Message ${currentChannel?.name || 'channel'}...`}
             className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
           />
           <button
             type="button"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
           >
             <Smile className="h-4 w-4" />
