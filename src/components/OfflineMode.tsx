@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../contexts/NotificationContext';
-import { Wifi, WifiOff, Download, Upload, Sync, AlertCircle } from 'lucide-react';
+import { Wifi, WifiOff, Download, Upload, FolderSync as Sync, AlertCircle } from 'lucide-react';
 
 interface OfflineModeProps {
   isOnline: boolean;
