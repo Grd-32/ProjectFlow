@@ -22,6 +22,7 @@ import {
 import { format } from 'date-fns';
 import ProjectModal from '../components/ProjectModal';
 import GanttChart from '../components/GanttChart';
+import PublicProjectShare from '../components/PublicProjectShare';
 
 const Projects = () => {
   const { projects } = useProject();
@@ -34,6 +35,8 @@ const Projects = () => {
   const [priorityFilter, setPriorityFilter] = useState<string>('All');
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'gantt'>('grid');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharingProject, setSharingProject] = useState<string | null>(null);
 
   const handleNewProject = () => {
     setEditingProject(null);
@@ -64,6 +67,12 @@ const Projects = () => {
         actionUrl: '/projects'
       });
     }
+  };
+
+  const handleShareProject = (projectId: string) => {
+    setSharingProject(projectId);
+    setShowShareModal(true);
+    setActiveDropdown(null);
   };
 
   const filteredProjects = projects.filter(project => {
@@ -302,6 +311,13 @@ const Projects = () => {
                       <span>View Details</span>
                     </button>
                     <button
+                      onClick={() => handleShareProject(project.id)}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span>Share Project</span>
+                    </button>
+                    <button
                       onClick={() => setActiveDropdown(null)}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
                     >
@@ -393,6 +409,17 @@ const Projects = () => {
         <ProjectModal
           projectId={editingProject}
           onClose={handleCloseModal}
+        />
+      )}
+
+      {showShareModal && sharingProject && (
+        <PublicProjectShare
+          projectId={sharingProject}
+          isOpen={showShareModal}
+          onClose={() => {
+            setShowShareModal(false);
+            setSharingProject(null);
+          }}
         />
       )}
     </div>

@@ -8,6 +8,7 @@ import NotificationPanel from './NotificationPanel';
 import UserProfile from './UserProfile';
 import ChatPanel from './ChatPanel';
 import AIAssistant from './AIAssistant';
+import DatabaseStatus from './DatabaseStatus';
 import { 
   Search, 
   Filter, 
@@ -293,6 +294,16 @@ const TopNavigation = () => {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Database Status */}
+      <div className="px-6 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <div className="flex items-center justify-between">
+          <DatabaseStatus />
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Real-time data synchronization enabled
           </div>
         </div>
       </div>
