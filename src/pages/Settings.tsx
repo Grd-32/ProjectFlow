@@ -3,6 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { useIntegration } from '../contexts/IntegrationContext';
+import { LanguageSelector } from '../components/MultiLanguageSupport';
 import { 
   User, 
   Bell, 
@@ -747,6 +748,13 @@ const Settings = () => {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Language
+                  </label>
+                  <LanguageSelector />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
