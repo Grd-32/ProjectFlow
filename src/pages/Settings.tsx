@@ -4,6 +4,7 @@ import { useUser } from '../contexts/UserContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { useIntegration } from '../contexts/IntegrationContext';
 import { LanguageSelector } from '../components/MultiLanguageSupport';
+import SecurityAuditLog from '../components/SecurityAuditLog';
 import { 
   User, 
   Bell, 
@@ -50,7 +51,7 @@ const Settings = () => {
   const { currentUser, updateUser, hasPermission } = useUser();
   const { addNotification } = useNotification();
   const { integrations, connectIntegration, disconnectIntegration, syncIntegration } = useIntegration();
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'appearance' | 'integrations' | 'billing' | 'advanced' | 'privacy' | 'accessibility'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'appearance' | 'integrations' | 'billing' | 'advanced' | 'privacy' | 'accessibility' | 'audit'>('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: currentUser.name,
@@ -294,7 +295,8 @@ const Settings = () => {
     { id: 'accessibility', label: 'Accessibility', icon: Monitor },
     ...(hasPermission('manage_settings') ? [
       { id: 'billing', label: 'Billing', icon: CreditCard },
-      { id: 'advanced', label: 'Advanced', icon: Database }
+      { id: 'advanced', label: 'Advanced', icon: Database },
+      { id: 'audit', label: 'Audit Log', icon: FileText }
     ] : [])
   ];
 
@@ -1260,6 +1262,11 @@ const Settings = () => {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Audit Log (Admin only) */}
+          {activeTab === 'audit' && hasPermission('manage_settings') && (
+            <SecurityAuditLog />
           )}
         </div>
       </div>
