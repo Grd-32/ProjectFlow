@@ -1,6 +1,8 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import TopNavigation from './TopNavigation';
+import ResponsiveLayout from './ResponsiveLayout';
+import MobileNavigation from './MobileNavigation';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -8,15 +10,17 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex h-screen bg-white dark:bg-gray-900 overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TopNavigation />
-        <main className="flex-1 overflow-hidden">
+    <>
+      <ResponsiveLayout
+        sidebar={<Sidebar />}
+        topNav={<TopNavigation />}
+      >
+        <div className="pb-16 md:pb-0">
           {children}
-        </main>
-      </div>
-    </div>
+        </div>
+      </ResponsiveLayout>
+      <MobileNavigation />
+    </>
   );
 };
 

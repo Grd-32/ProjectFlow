@@ -1,225 +1,3 @@
-// import { createClient } from '@supabase/supabase-js';
-
-// const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-// const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// if (!supabaseUrl || !supabaseAnonKey) {
-//   throw new Error('Missing Supabase environment variables. Please set up Supabase connection.');
-// }
-
-// export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// // Database types
-// export interface Database {
-//   public: {
-//     Tables: {
-//       users: {
-//         Row: {
-//           id: string;
-//           name: string;
-//           email: string;
-//           avatar: string | null;
-//           role: 'Admin' | 'Manager' | 'Member' | 'Viewer';
-//           department: string;
-//           status: 'Active' | 'Inactive';
-//           created_at: string;
-//           updated_at: string;
-//           last_login: string;
-//         };
-//         Insert: {
-//           id?: string;
-//           name: string;
-//           email: string;
-//           avatar?: string | null;
-//           role?: 'Admin' | 'Manager' | 'Member' | 'Viewer';
-//           department?: string;
-//           status?: 'Active' | 'Inactive';
-//           created_at?: string;
-//           updated_at?: string;
-//           last_login?: string;
-//         };
-//         Update: {
-//           id?: string;
-//           name?: string;
-//           email?: string;
-//           avatar?: string | null;
-//           role?: 'Admin' | 'Manager' | 'Member' | 'Viewer';
-//           department?: string;
-//           status?: 'Active' | 'Inactive';
-//           updated_at?: string;
-//           last_login?: string;
-//         };
-//       };
-//       projects: {
-//         Row: {
-//           id: string;
-//           name: string;
-//           description: string;
-//           status: 'Planning' | 'Active' | 'On Hold' | 'Completed' | 'Cancelled';
-//           priority: 'Low' | 'Medium' | 'High' | 'Critical';
-//           start_date: string;
-//           end_date: string;
-//           budget: number;
-//           spent: number;
-//           progress: number;
-//           manager_id: string;
-//           team_members: string[];
-//           created_at: string;
-//           updated_at: string;
-//           is_publicly_shared: boolean;
-//           share_settings: any;
-//         };
-//         Insert: {
-//           id?: string;
-//           name: string;
-//           description?: string;
-//           status?: 'Planning' | 'Active' | 'On Hold' | 'Completed' | 'Cancelled';
-//           priority?: 'Low' | 'Medium' | 'High' | 'Critical';
-//           start_date?: string;
-//           end_date?: string;
-//           budget?: number;
-//           spent?: number;
-//           progress?: number;
-//           manager_id?: string;
-//           team_members?: string[];
-//           created_at?: string;
-//           updated_at?: string;
-//           is_publicly_shared?: boolean;
-//           share_settings?: any;
-//         };
-//         Update: {
-//           name?: string;
-//           description?: string;
-//           status?: 'Planning' | 'Active' | 'On Hold' | 'Completed' | 'Cancelled';
-//           priority?: 'Low' | 'Medium' | 'High' | 'Critical';
-//           start_date?: string;
-//           end_date?: string;
-//           budget?: number;
-//           spent?: number;
-//           progress?: number;
-//           manager_id?: string;
-//           team_members?: string[];
-//           updated_at?: string;
-//           is_publicly_shared?: boolean;
-//           share_settings?: any;
-//         };
-//       };
-//       tasks: {
-//         Row: {
-//           id: string;
-//           name: string;
-//           description: string | null;
-//           status: 'Pending' | 'In progress' | 'Complete' | 'Blocked';
-//           priority: 'Low' | 'Medium' | 'High';
-//           assignee_id: string;
-//           project_id: string;
-//           due_date: string;
-//           estimated_hours: number;
-//           tags: string[];
-//           dependencies: string[];
-//           created_at: string;
-//           updated_at: string;
-//         };
-//         Insert: {
-//           id?: string;
-//           name: string;
-//           description?: string | null;
-//           status?: 'Pending' | 'In progress' | 'Complete' | 'Blocked';
-//           priority?: 'Low' | 'Medium' | 'High';
-//           assignee_id?: string;
-//           project_id?: string;
-//           due_date?: string;
-//           estimated_hours?: number;
-//           tags?: string[];
-//           dependencies?: string[];
-//           created_at?: string;
-//           updated_at?: string;
-//         };
-//         Update: {
-//           name?: string;
-//           description?: string | null;
-//           status?: 'Pending' | 'In progress' | 'Complete' | 'Blocked';
-//           priority?: 'Low' | 'Medium' | 'High';
-//           assignee_id?: string;
-//           project_id?: string;
-//           due_date?: string;
-//           estimated_hours?: number;
-//           tags?: string[];
-//           dependencies?: string[];
-//           updated_at?: string;
-//         };
-//       };
-//       notifications: {
-//         Row: {
-//           id: string;
-//           type: 'info' | 'success' | 'warning' | 'error';
-//           title: string;
-//           message: string;
-//           user_id: string;
-//           read: boolean;
-//           related_entity_type: string | null;
-//           related_entity_id: string | null;
-//           related_entity_name: string | null;
-//           action_url: string | null;
-//           created_at: string;
-//         };
-//         Insert: {
-//           id?: string;
-//           type: 'info' | 'success' | 'warning' | 'error';
-//           title: string;
-//           message: string;
-//           user_id: string;
-//           read?: boolean;
-//           related_entity_type?: string | null;
-//           related_entity_id?: string | null;
-//           related_entity_name?: string | null;
-//           action_url?: string | null;
-//           created_at?: string;
-//         };
-//         Update: {
-//           read?: boolean;
-//         };
-//       };
-//       time_entries: {
-//         Row: {
-//           id: string;
-//           task_id: string;
-//           user_id: string;
-//           start_time: string;
-//           end_time: string | null;
-//           duration: number;
-//           description: string;
-//           billable: boolean;
-//           hourly_rate: number | null;
-//           status: 'running' | 'stopped' | 'approved' | 'rejected';
-//           created_at: string;
-//         };
-//         Insert: {
-//           id?: string;
-//           task_id: string;
-//           user_id: string;
-//           start_time: string;
-//           end_time?: string | null;
-//           duration?: number;
-//           description?: string;
-//           billable?: boolean;
-//           hourly_rate?: number | null;
-//           status?: 'running' | 'stopped' | 'approved' | 'rejected';
-//           created_at?: string;
-//         };
-//         Update: {
-//           end_time?: string | null;
-//           duration?: number;
-//           description?: string;
-//           billable?: boolean;
-//           hourly_rate?: number | null;
-//           status?: 'running' | 'stopped' | 'approved' | 'rejected';
-//         };
-//       };
-//     };
-//   };
-// }
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
@@ -227,11 +5,223 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please set up Supabase connection.');
+  console.warn('Supabase environment variables not found. Using mock data mode.');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient<Database>(supabaseUrl, supabaseAnonKey)
+  : null;
 
-// Optional: Export types for easier usage
+// Export types for easier usage
 export type Tables = Database['public']['Tables'];
 export type Enums = Database['public']['Enums'];
+
+// Database service functions
+export const dbService = {
+  // Users
+  async getUsers() {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
+    return data;
+  },
+
+  async createUser(userData: Tables['users']['Insert']) {
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{
+        ...userData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating user:', error);
+      return null;
+    }
+    return data;
+  },
+
+  async updateUser(id: string, updates: Tables['users']['Update']) {
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating user:', error);
+      return null;
+    }
+    return data;
+  },
+
+  // Projects
+  async getProjects() {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching projects:', error);
+      return [];
+    }
+    return data;
+  },
+
+  async createProject(projectData: Tables['projects']['Insert']) {
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([{
+        ...projectData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating project:', error);
+      return null;
+    }
+    return data;
+  },
+
+  // Tasks
+  async getTasks() {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching tasks:', error);
+      return [];
+    }
+    return data;
+  },
+
+  async createTask(taskData: Tables['tasks']['Insert']) {
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert([{
+        ...taskData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating task:', error);
+      return null;
+    }
+    return data;
+  },
+
+  // Time Entries
+  async createTimeEntry(timeData: Tables['time_entries']['Insert']) {
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from('time_entries')
+      .insert([{
+        ...timeData,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating time entry:', error);
+      return null;
+    }
+    return data;
+  },
+
+  // Notifications
+  async createNotification(notificationData: Tables['notifications']['Insert']) {
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert([{
+        ...notificationData,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating notification:', error);
+      return null;
+    }
+    return data;
+  },
+
+  // Chat
+  async getChatChannels() {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('chat_channels')
+      .select('*')
+      .order('updated_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching chat channels:', error);
+      return [];
+    }
+    return data;
+  },
+
+  async getChatMessages(channelId: string) {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('channel_id', channelId)
+      .order('created_at', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching chat messages:', error);
+      return [];
+    }
+    return data;
+  },
+
+  async sendChatMessage(messageData: Tables['chat_messages']['Insert']) {
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .insert([{
+        ...messageData,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error sending chat message:', error);
+      return null;
+    }
+    return data;
+  }
+};

@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useTask } from '../contexts/TaskContext';
 import { useProject } from '../contexts/ProjectContext';
 import { useUser } from '../contexts/UserContext';
+import { useTimeTracking } from '../contexts/TimeTrackingContext';
+import { useNotification } from '../contexts/NotificationContext';
+import { exportUtils } from '../utils/exportUtils';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -12,7 +15,10 @@ import {
   Download,
   Filter,
   PieChart,
-  Activity
+  Activity,
+  FileText,
+  Table,
+  FileSpreadsheet
 } from 'lucide-react';
 import { format, subDays, subMonths, subYears } from 'date-fns';
 
@@ -20,6 +26,8 @@ const Reports = () => {
   const { tasks, goals } = useTask();
   const { projects } = useProject();
   const { users, hasPermission } = useUser();
+  const { timeEntries } = useTimeTracking();
+  const { addNotification } = useNotification();
   const [dateRange, setDateRange] = useState('30');
   const [reportType, setReportType] = useState('overview');
 
@@ -64,6 +72,97 @@ const Reports = () => {
   const activeGoals = goals.filter(g => g.status === 'Active').length;
   const completedGoals = goals.filter(g => g.status === 'Completed').length;
 
+  const handleExportReport = async (format: 'csv' | 'excel' | 'pdf') => {
+    let data: any[] = [];
+    let filename = '';
+    let content = '';
+
+    switch (reportType) {
+      case 'tasks':
+        data = exportUtils.generateTaskReport(tasks);
+        filename = `tasks-report-${new Date().toISOString().split('T')[0]}`;
+        content = `
+          <h2>Tasks Report</h2>
+          <p>Total Tasks: ${tasks.length}</p>
+          <p>Completed: ${tasks.filter(t => t.status === 'Complete').length}</p>
+          <p>In Progress: ${tasks.filter(t => t.status === 'In progress').length}</p>
+          <p>Pending: ${tasks.filter(t => t.status === 'Pending').length}</p>
+        `;
+        break;
+      case 'projects':
+        data = exportUtils.generateProjectReport(projects);
+        filename = `projects-report-${new Date().toISOString().split('T')[0]}`;
+        content = `
+          <h2>Projects Report</h2>
+          <p>Total Projects: ${projects.length}</p>
+          <p>Active: ${projects.filter(p => p.status === 'Active').length}</p>
+          <p>Completed: ${projects.filter(p => p.status === 'Completed').length}</p>
+        `;
+        break;
+      case 'team':
+        data = exportUtils.generateUserReport(users);
+        filename = `team-report-${new Date().toISOString().split('T')[0]}`;
+        content = `
+          <h2>Team Report</h2>
+          <p>Total Users: ${users.length}</p>
+          <p>Active: ${users.filter(u => u.status === 'Active').length}</p>
+        `;
+        break;
+      case 'time':
+        data = exportUtils.generateTimeReport(timeEntries);
+        filename = `time-report-${new Date().toISOString().split('T')[0]}`;
+        content = `
+          <h2>Time Tracking Report</h2>
+          <p>Total Entries: ${timeEntries.length}</p>
+          <p>Total Hours: ${Math.round(timeEntries.reduce((sum, e) => sum + e.duration, 0) / 60)}</p>
+        `;
+        break;
+      default:
+        data = exportUtils.generateTaskReport(tasks);
+        filename = `overview-report-${new Date().toISOString().split('T')[0]}`;
+        content = `
+          <h2>Overview Report</h2>
+          <p>Tasks: ${tasks.length}</p>
+          <p>Projects: ${projects.length}</p>
+          <p>Users: ${users.length}</p>
+        `;
+    }
+
+    try {
+      if (format === 'pdf') {
+        await exportUtils.exportToPDF(content, filename);
+      } else if (format === 'excel') {
+        exportUtils.exportToExcel(data, filename);
+      } else {
+        exportUtils.exportToCSV(data, filename);
+      }
+
+      addNotification({
+        type: 'success',
+        title: 'Report Exported',
+        message: `${reportType} report exported as ${format.toUpperCase()}`,
+        userId: '1',
+        relatedEntity: {
+          type: 'project',
+          id: 'export',
+          name: `${reportType} Report`
+        }
+      });
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        title: 'Export Failed',
+        message: 'Failed to export report',
+        userId: '1',
+        relatedEntity: {
+          type: 'project',
+          id: 'export',
+          name: 'Export Error'
+        }
+      });
+    }
+  };
+
   return (
     <div className="p-6 h-full overflow-auto">
       <div className="flex items-center justify-between mb-6">
@@ -92,11 +191,31 @@ const Reports = () => {
             <option value="tasks">Tasks</option>
             <option value="budget">Budget</option>
             <option value="team">Team</option>
+            <option value="time">Time Tracking</option>
           </select>
-          <button className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Download className="h-4 w-4" />
-            <span>Export</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => handleExportReport('csv')}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <FileText className="h-4 w-4" />
+              <span>CSV</span>
+            </button>
+            <button 
+              onClick={() => handleExportReport('excel')}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              <span>Excel</span>
+            </button>
+            <button 
+              onClick={() => handleExportReport('pdf')}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              <span>PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 

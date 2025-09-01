@@ -35,6 +35,7 @@ const TopNavigation = () => {
   const { currentUser } = useUser();
   const { tasks, goals, documents } = useTask();
   const { projects } = useProject();
+  const [isMobile, setIsMobile] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -43,6 +44,15 @@ const TopNavigation = () => {
   const [showChat, setShowChat] = useState(false);
   const [showAI, setShowAI] = useState(false);
 
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const getPageTitle = () => {
     switch (location.pathname) {
       case '/':
@@ -144,15 +154,16 @@ const TopNavigation = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-10">
+    <div className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'} sticky top-0 z-10`}>
       <div className="flex items-center justify-between">
         {/* Left Section */}
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className={`flex items-center ${isMobile ? 'space-x-2' : 'space-x-4'}`}>
+          <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold text-gray-900 dark:text-white`}>
             {getPageTitle()}
           </h1>
           {/* Search Bar */}
-          <div className="relative">
+          {!isMobile && (
+          <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
@@ -160,7 +171,7 @@ const TopNavigation = () => {
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               onFocus={() => searchTerm.length >= 2 && setShowSearchResults(true)}
-              className="pl-10 pr-4 py-2 w-80 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="pl-10 pr-4 py-2 w-64 lg:w-80 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
             
             {/* Search Results Dropdown */}
@@ -203,10 +214,18 @@ const TopNavigation = () => {
               </>
             )}
           </div>
+          )}
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center space-x-4">
+        <div className={`flex items-center ${isMobile ? 'space-x-2' : 'space-x-4'}`}>
+          {/* Mobile Search Button */}
+          {isMobile && (
+            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <Search className="h-5 w-5" />
+            </button>
+          )}
+
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -217,7 +236,8 @@ const TopNavigation = () => {
           </button>
 
           {/* View Toggle */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          {!isMobile && (
+          <div className="hidden lg:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 rounded transition-colors">
               <List className="h-4 w-4" />
             </button>
@@ -228,11 +248,13 @@ const TopNavigation = () => {
               <Calendar className="h-4 w-4" />
             </button>
           </div>
+          )}
 
           {/* Notifications */}
           <NotificationPanel />
 
           {/* Chat */}
+          {!isMobile && (
           <button
             onClick={() => setShowChat(!showChat)}
             className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -240,8 +262,10 @@ const TopNavigation = () => {
           >
             <MessageSquare className="h-5 w-5" />
           </button>
+          )}
 
           {/* AI Assistant */}
+          {!isMobile && (
           <button
             onClick={() => setShowAI(!showAI)}
             className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -249,18 +273,21 @@ const TopNavigation = () => {
           >
             <Brain className="h-5 w-5" />
           </button>
+          )}
 
           {/* Profile */}
-          <div className="relative flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className={`relative flex items-center ${isMobile ? 'space-x-2' : 'space-x-3'}`}>
+            <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0`}>
               <span className="text-white text-sm font-medium leading-none">{currentUser.initials}</span>
             </div>
+            {!isMobile && (
             <button 
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <ChevronDown className="h-4 w-4" />
             </button>
+            )}
             
             {showProfileMenu && (
               <>
@@ -268,10 +295,10 @@ const TopNavigation = () => {
                   className="fixed inset-0 z-40" 
                   onClick={() => setShowProfileMenu(false)}
                 />
-                <div className="absolute right-0 top-12 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                <div className={`absolute right-0 top-12 ${isMobile ? 'w-56' : 'w-64'} bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50`}>
                   <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{currentUser.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{currentUser.email}</p>
+                    <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-900 dark:text-white truncate`}>{currentUser.name}</p>
+                    <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500 dark:text-gray-400 truncate`}>{currentUser.email}</p>
                     <span className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded mt-1">
                       {currentUser.role}
                     </span>

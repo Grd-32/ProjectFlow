@@ -16,6 +16,17 @@ import { format } from 'date-fns';
 const Dashboard = () => {
   const { tasks, goals } = useTask();
   const { hasPermission } = useUser();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const completedTasks = tasks.filter(task => task.status === 'Complete').length;
   const inProgressTasks = tasks.filter(task => task.status === 'In progress').length;
@@ -63,51 +74,51 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className={`${isMobile ? 'p-4 space-y-4' : 'p-6 space-y-6'}`}>
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+        <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900 dark:text-white`}>Dashboard</h1>
+        <p className={`text-gray-600 dark:text-gray-400 mt-1 ${isMobile ? 'text-sm' : ''}`}>
           Welcome back! Here's what's happening with your projects.
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className={`grid grid-cols-1 ${isMobile ? 'sm:grid-cols-2 gap-4' : 'md:grid-cols-2 lg:grid-cols-4 gap-6'}`}>
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+          <div key={index} className={`bg-white dark:bg-gray-800 rounded-lg ${isMobile ? 'p-4' : 'p-6'} border border-gray-200 dark:border-gray-700`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{stat.value}</p>
-                <p className="text-sm text-green-600 dark:text-green-400 mt-1">{stat.change} from last month</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 dark:text-gray-400`}>{stat.title}</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900 dark:text-white mt-2`}>{stat.value}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-green-600 dark:text-green-400 mt-1`}>{stat.change} from last month</p>
               </div>
-              <div className={`p-3 rounded-lg ${stat.color}`}>
-                <stat.icon className="h-6 w-6 text-white" />
+              <div className={`${isMobile ? 'p-2' : 'p-3'} rounded-lg ${stat.color}`}>
+                <stat.icon className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-white`} />
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-2 gap-6'}`}>
         {/* Recent Activity */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+          <div className={`${isMobile ? 'p-4' : 'p-6'} border-b border-gray-200 dark:border-gray-700`}>
+            <h2 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold text-gray-900 dark:text-white`}>Recent Activity</h2>
           </div>
-          <div className="p-6">
+          <div className={isMobile ? 'p-4' : 'p-6'}>
             <div className="space-y-4">
               {recentTasks.map((task) => (
                 <div key={task.id} className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0`}>
                     <span className="text-white text-xs font-medium">{task.assignee.initials}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-900 dark:text-white truncate`}>
                       {task.name}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500 dark:text-gray-400`}>
                       Updated {format(new Date(task.updatedAt), 'MMM d, yyyy')}
                     </p>
                   </div>
