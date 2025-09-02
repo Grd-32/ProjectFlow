@@ -13,7 +13,7 @@ export const useDatabase = () => {
 
   const checkConnection = async () => {
     try {
-      const { data, error } = await supabase.from('users').select('count').limit(1);
+      const { data, error } = await supabase.from('users').select('id').limit(1);
       if (error) throw error;
       setIsConnected(true);
       addNotification({
