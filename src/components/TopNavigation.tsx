@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
@@ -27,7 +27,6 @@ import {
   MessageSquare,
   Brain
 } from 'lucide-react';
-import { useState } from 'react';
 
 const TopNavigation = () => {
   const location = useLocation();
