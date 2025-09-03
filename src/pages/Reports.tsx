@@ -18,7 +18,8 @@ import {
   Activity,
   FileText,
   Table,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Loader
 } from 'lucide-react';
 import { format, subDays, subMonths, subYears } from 'date-fns';
 
@@ -30,6 +31,7 @@ const Reports = () => {
   const { addNotification } = useNotification();
   const [dateRange, setDateRange] = useState('30');
   const [reportType, setReportType] = useState('overview');
+  const [isExporting, setIsExporting] = useState(false);
 
   if (!hasPermission('view_analytics')) {
     return (
@@ -59,7 +61,7 @@ const Reports = () => {
 
   const filterDate = getDateFilter();
 
-  // Calculate metrics
+  // Calculate real metrics
   const completedTasks = tasks.filter(task => task.status === 'Complete').length;
   const totalTasks = tasks.length;
   const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -73,64 +75,80 @@ const Reports = () => {
   const completedGoals = goals.filter(g => g.status === 'Completed').length;
 
   const handleExportReport = async (format: 'csv' | 'excel' | 'pdf') => {
-    let data: any[] = [];
-    let filename = '';
-    let content = '';
-
-    switch (reportType) {
-      case 'tasks':
-        data = exportUtils.generateTaskReport(tasks);
-        filename = `tasks-report-${new Date().toISOString().split('T')[0]}`;
-        content = `
-          <h2>Tasks Report</h2>
-          <p>Total Tasks: ${tasks.length}</p>
-          <p>Completed: ${tasks.filter(t => t.status === 'Complete').length}</p>
-          <p>In Progress: ${tasks.filter(t => t.status === 'In progress').length}</p>
-          <p>Pending: ${tasks.filter(t => t.status === 'Pending').length}</p>
-        `;
-        break;
-      case 'projects':
-        data = exportUtils.generateProjectReport(projects);
-        filename = `projects-report-${new Date().toISOString().split('T')[0]}`;
-        content = `
-          <h2>Projects Report</h2>
-          <p>Total Projects: ${projects.length}</p>
-          <p>Active: ${projects.filter(p => p.status === 'Active').length}</p>
-          <p>Completed: ${projects.filter(p => p.status === 'Completed').length}</p>
-        `;
-        break;
-      case 'team':
-        data = exportUtils.generateUserReport(users);
-        filename = `team-report-${new Date().toISOString().split('T')[0]}`;
-        content = `
-          <h2>Team Report</h2>
-          <p>Total Users: ${users.length}</p>
-          <p>Active: ${users.filter(u => u.status === 'Active').length}</p>
-        `;
-        break;
-      case 'time':
-        data = exportUtils.generateTimeReport(timeEntries);
-        filename = `time-report-${new Date().toISOString().split('T')[0]}`;
-        content = `
-          <h2>Time Tracking Report</h2>
-          <p>Total Entries: ${timeEntries.length}</p>
-          <p>Total Hours: ${Math.round(timeEntries.reduce((sum, e) => sum + e.duration, 0) / 60)}</p>
-        `;
-        break;
-      default:
-        data = exportUtils.generateTaskReport(tasks);
-        filename = `overview-report-${new Date().toISOString().split('T')[0]}`;
-        content = `
-          <h2>Overview Report</h2>
-          <p>Tasks: ${tasks.length}</p>
-          <p>Projects: ${projects.length}</p>
-          <p>Users: ${users.length}</p>
-        `;
-    }
-
+    setIsExporting(true);
+    
     try {
+      let data: any[] = [];
+      let filename = '';
+      let content = '';
+
+      switch (reportType) {
+        case 'tasks':
+          data = exportUtils.generateTaskReport(tasks);
+          filename = `tasks-report-${new Date().toISOString().split('T')[0]}`;
+          content = `
+            <h2>Tasks Report</h2>
+            <p>Report generated on ${new Date().toLocaleDateString()}</p>
+            <p>Total Tasks: ${tasks.length}</p>
+            <p>Completed: ${tasks.filter(t => t.status === 'Complete').length}</p>
+            <p>In Progress: ${tasks.filter(t => t.status === 'In progress').length}</p>
+            <p>Pending: ${tasks.filter(t => t.status === 'Pending').length}</p>
+            <p>Blocked: ${tasks.filter(t => t.status === 'Blocked').length}</p>
+          `;
+          break;
+        case 'projects':
+          data = exportUtils.generateProjectReport(projects);
+          filename = `projects-report-${new Date().toISOString().split('T')[0]}`;
+          content = `
+            <h2>Projects Report</h2>
+            <p>Report generated on ${new Date().toLocaleDateString()}</p>
+            <p>Total Projects: ${projects.length}</p>
+            <p>Active: ${projects.filter(p => p.status === 'Active').length}</p>
+            <p>Completed: ${projects.filter(p => p.status === 'Completed').length}</p>
+            <p>Total Budget: $${totalBudget.toLocaleString()}</p>
+            <p>Total Spent: $${totalSpent.toLocaleString()}</p>
+          `;
+          break;
+        case 'team':
+          data = exportUtils.generateUserReport(users);
+          filename = `team-report-${new Date().toISOString().split('T')[0]}`;
+          content = `
+            <h2>Team Report</h2>
+            <p>Report generated on ${new Date().toLocaleDateString()}</p>
+            <p>Total Users: ${users.length}</p>
+            <p>Active: ${users.filter(u => u.status === 'Active').length}</p>
+            <p>Inactive: ${users.filter(u => u.status === 'Inactive').length}</p>
+          `;
+          break;
+        case 'time':
+          data = exportUtils.generateTimeReport(timeEntries);
+          filename = `time-report-${new Date().toISOString().split('T')[0]}`;
+          content = `
+            <h2>Time Tracking Report</h2>
+            <p>Report generated on ${new Date().toLocaleDateString()}</p>
+            <p>Total Entries: ${timeEntries.length}</p>
+            <p>Total Hours: ${Math.round(timeEntries.reduce((sum, e) => sum + e.duration, 0) / 60)}</p>
+          `;
+          break;
+        default:
+          data = exportUtils.generateOverviewReport(tasks, projects, users);
+          filename = `overview-report-${new Date().toISOString().split('T')[0]}`;
+          content = `
+            <h2>Overview Report</h2>
+            <p>Report generated on ${new Date().toLocaleDateString()}</p>
+            <h3>Summary</h3>
+            <p>Tasks: ${tasks.length} (${completedTasks} completed)</p>
+            <p>Projects: ${projects.length} (${activeProjects} active)</p>
+            <p>Users: ${users.length}</p>
+            <p>Budget Utilization: ${budgetUtilization.toFixed(1)}%</p>
+          `;
+      }
+
+      // Add delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       if (format === 'pdf') {
-        await exportUtils.exportToPDF(content, filename);
+        await exportUtils.exportToPDF(content, filename, data);
       } else if (format === 'excel') {
         exportUtils.exportToExcel(data, filename);
       } else {
@@ -139,7 +157,7 @@ const Reports = () => {
 
       addNotification({
         type: 'success',
-        title: 'Report Exported',
+        title: 'Report Exported Successfully',
         message: `${reportType} report exported as ${format.toUpperCase()}`,
         userId: '1',
         relatedEntity: {
@@ -149,10 +167,11 @@ const Reports = () => {
         }
       });
     } catch (error) {
+      console.error('Export error:', error);
       addNotification({
         type: 'error',
         title: 'Export Failed',
-        message: 'Failed to export report',
+        message: 'Failed to export report. Please try again.',
         userId: '1',
         relatedEntity: {
           type: 'project',
@@ -160,6 +179,8 @@ const Reports = () => {
           name: 'Export Error'
         }
       });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -189,30 +210,32 @@ const Reports = () => {
             <option value="overview">Overview</option>
             <option value="projects">Projects</option>
             <option value="tasks">Tasks</option>
-            <option value="budget">Budget</option>
             <option value="team">Team</option>
             <option value="time">Time Tracking</option>
           </select>
           <div className="flex items-center space-x-2">
             <button 
               onClick={() => handleExportReport('csv')}
-              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              disabled={isExporting}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
             >
-              <FileText className="h-4 w-4" />
+              {isExporting ? <Loader className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
               <span>CSV</span>
             </button>
             <button 
               onClick={() => handleExportReport('excel')}
-              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              disabled={isExporting}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
             >
-              <FileSpreadsheet className="h-4 w-4" />
+              {isExporting ? <Loader className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
               <span>Excel</span>
             </button>
             <button 
               onClick={() => handleExportReport('pdf')}
-              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              disabled={isExporting}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
             >
-              <Download className="h-4 w-4" />
+              {isExporting ? <Loader className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               <span>PDF</span>
             </button>
           </div>
@@ -275,7 +298,7 @@ const Reports = () => {
       </div>
 
       {/* Charts and Detailed Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Project Status Distribution</h3>
           <div className="space-y-4">
@@ -288,7 +311,7 @@ const Reports = () => {
                   <div className="flex items-center space-x-2">
                     <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
-                        className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full"
+                        className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
@@ -315,7 +338,7 @@ const Reports = () => {
                   <div className="flex items-center space-x-2">
                     <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
-                        className={`${color} h-2 rounded-full`}
+                        className={`${color} h-2 rounded-full transition-all duration-300`}
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
@@ -325,6 +348,42 @@ const Reports = () => {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* Team Performance */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Team Performance</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {users.filter(u => u.status === 'Active').map((user) => {
+            const userTasks = tasks.filter(t => t.assignee.id === user.id);
+            const completedUserTasks = userTasks.filter(t => t.status === 'Complete').length;
+            const userCompletionRate = userTasks.length > 0 ? (completedUserTasks / userTasks.length) * 100 : 0;
+            
+            return (
+              <div key={user.id} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-white text-sm font-medium">{user.initials}</span>
+                </div>
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{user.department}</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Tasks:</span>
+                    <span className="text-gray-900 dark:text-white">{userTasks.length}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Completed:</span>
+                    <span className="text-green-600 dark:text-green-400">{completedUserTasks}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Rate:</span>
+                    <span className="text-gray-900 dark:text-white">{userCompletionRate.toFixed(0)}%</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

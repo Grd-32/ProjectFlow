@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNotification } from './NotificationContext';
+import { useUser } from './UserContext';
 
 export interface ChatMessage {
   id: string;
@@ -79,6 +80,7 @@ export const useChat = () => {
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { addNotification } = useNotification();
+  const { currentUser, users } = useUser();
   
   const [channels, setChannels] = useState<ChatChannel[]>([
     {
@@ -89,31 +91,31 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       members: ['1', '2', '3', '4', '5', '6'],
       isPrivate: false,
       createdAt: '2024-01-01T00:00:00Z',
-      lastActivity: '2024-12-11T15:30:00Z',
-      unreadCount: 2
+      lastActivity: new Date().toISOString(),
+      unreadCount: 0
     },
     {
       id: 'project-1',
       name: 'Website Redesign',
       description: 'Discussions about the website redesign project',
       type: 'project',
-      members: ['1', '2', '3'],
+      members: ['1', '2', '3', '4'],
       isPrivate: false,
       projectId: '1',
       createdAt: '2024-11-01T00:00:00Z',
-      lastActivity: '2024-12-11T14:20:00Z',
-      unreadCount: 1
+      lastActivity: new Date().toISOString(),
+      unreadCount: 0
     },
     {
       id: 'project-2',
       name: 'Mobile App',
       description: 'Mobile app development discussions',
       type: 'project',
-      members: ['1', '4', '5'],
+      members: ['1', '2', '6'],
       isPrivate: false,
       projectId: '2',
       createdAt: '2024-12-01T00:00:00Z',
-      lastActivity: '2024-12-11T13:15:00Z',
+      lastActivity: new Date().toISOString(),
       unreadCount: 0
     }
   ]);
@@ -128,65 +130,23 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         authorId: '1',
         authorName: 'John Doe',
         authorInitials: 'JD',
-        timestamp: '2024-12-11T09:00:00Z',
-        type: 'text',
-        reactions: [
-          { emoji: '👍', userId: '2', userName: 'Sarah Chen' },
-          { emoji: '🎉', userId: '3', userName: 'Mike Johnson' }
-        ]
-      },
-      {
-        id: '2',
-        content: 'Thanks! Excited to be here and contribute to the projects. @Mike Johnson when can we sync on the new features?',
-        authorId: '2',
-        authorName: 'Sarah Chen',
-        authorInitials: 'SC',
-        timestamp: '2024-12-11T09:15:00Z',
-        type: 'text',
-        mentions: ['3']
-      },
-      {
-        id: '3',
-        content: 'Great to have you on board! Let\'s schedule a call for tomorrow morning.',
-        authorId: '3',
-        authorName: 'Mike Johnson',
-        authorInitials: 'MJ',
-        timestamp: '2024-12-11T15:30:00Z',
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
         type: 'text'
       }
     ],
     'project-1': [
       {
-        id: '4',
+        id: '2',
         content: 'The hero section mockups are ready for review. @Mike Johnson please take a look when you have a chance.',
         authorId: '2',
         authorName: 'Sarah Chen',
         authorInitials: 'SC',
-        timestamp: '2024-12-11T14:20:00Z',
+        timestamp: new Date(Date.now() - 1800000).toISOString(),
         type: 'text',
         mentions: ['3']
-      },
-      {
-        id: '5',
-        content: 'Looks fantastic! I\'ve added some feedback in the design file. The color scheme really pops.',
-        authorId: '3',
-        authorName: 'Mike Johnson',
-        authorInitials: 'MJ',
-        timestamp: '2024-12-11T14:25:00Z',
-        type: 'text'
       }
     ],
-    'project-2': [
-      {
-        id: '6',
-        content: 'Starting work on the mobile app wireframes. Should have initial designs by end of week.',
-        authorId: '4',
-        authorName: 'Alex Rodriguez',
-        authorInitials: 'AR',
-        timestamp: '2024-12-11T13:15:00Z',
-        type: 'text'
-      }
-    ]
+    'project-2': []
   });
 
   const [activeChannel, setActiveChannel] = useState<string | null>('general');
@@ -198,14 +158,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const interval = setInterval(() => {
       // Simulate users going online/offline
       setOnlineUsers(prev => {
-        const allUsers = ['1', '2', '3', '4', '5', '6'];
-        const onlineCount = Math.floor(Math.random() * 3) + 3; // 3-5 users online
+        const allUsers = users.map(u => u.id);
+        const onlineCount = Math.floor(Math.random() * 3) + Math.max(3, allUsers.length - 2);
         return allUsers.slice(0, onlineCount);
       });
-    }, 30000); // Update every 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [users]);
 
   const addChannel = (channelData: Omit<ChatChannel, 'id' | 'createdAt' | 'lastActivity' | 'unreadCount'>) => {
     const newChannel: ChatChannel = {
@@ -222,7 +182,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       type: 'info',
       title: 'New Channel Created',
       message: `Channel "${newChannel.name}" has been created`,
-      userId: '1',
+      userId: currentUser.id,
       relatedEntity: {
         type: 'project',
         id: newChannel.id,
@@ -253,7 +213,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         type: 'warning',
         title: 'Channel Deleted',
         message: `Channel "${channel.name}" has been deleted`,
-        userId: '1',
+        userId: currentUser.id,
         relatedEntity: {
           type: 'project',
           id: channel.id,
@@ -267,12 +227,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
       content,
-      authorId: '1', // Current user
-      authorName: 'John Doe',
-      authorInitials: 'JD',
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      authorInitials: currentUser.initials,
       timestamp: new Date().toISOString(),
       type,
-      mentions: content.match(/@(\w+)/g)?.map(m => m.substring(1)) || [],
+      mentions: content.match(/@(\w+\s+\w+)/g)?.map(m => {
+        const mentionedUser = users.find(u => u.name === m.substring(1));
+        return mentionedUser?.id || '';
+      }).filter(id => id) || [],
       ...(fileData && {
         fileUrl: fileData.url,
         fileName: fileData.name,
@@ -285,31 +248,36 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       [channelId]: [...(prev[channelId] || []), newMessage]
     }));
 
-    // Update channel last activity and unread count for other users
+    // Update channel last activity
     setChannels(prev => prev.map(channel => 
       channel.id === channelId 
         ? { 
             ...channel, 
             lastActivity: new Date().toISOString(),
-            lastMessage: newMessage
+            lastMessage: newMessage,
+            unreadCount: channel.members.filter(m => m !== currentUser.id).length
           }
         : channel
     ));
 
     // Send notifications for mentions
     if (newMessage.mentions && newMessage.mentions.length > 0) {
-      newMessage.mentions.forEach(mention => {
-        addNotification({
-          type: 'info',
-          title: 'You were mentioned',
-          message: `${newMessage.authorName} mentioned you in ${channels.find(c => c.id === channelId)?.name}`,
-          userId: mention,
-          relatedEntity: {
-            type: 'project',
-            id: channelId,
-            name: channels.find(c => c.id === channelId)?.name || 'Chat'
-          }
-        });
+      const channel = channels.find(c => c.id === channelId);
+      newMessage.mentions.forEach(mentionedUserId => {
+        const mentionedUser = users.find(u => u.id === mentionedUserId);
+        if (mentionedUser) {
+          addNotification({
+            type: 'info',
+            title: 'You were mentioned',
+            message: `${newMessage.authorName} mentioned you in ${channel?.name}`,
+            userId: mentionedUserId,
+            relatedEntity: {
+              type: 'project',
+              id: channelId,
+              name: channel?.name || 'Chat'
+            }
+          });
+        }
       });
     }
   };
@@ -319,20 +287,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ...prev,
       [channelId]: prev[channelId]?.map(message => {
         if (message.id === messageId) {
-          const existingReaction = message.reactions?.find(r => r.emoji === emoji && r.userId === '1');
+          const existingReaction = message.reactions?.find(r => r.emoji === emoji && r.userId === currentUser.id);
           if (existingReaction) {
-            // Remove reaction if already exists
             return {
               ...message,
-              reactions: message.reactions?.filter(r => !(r.emoji === emoji && r.userId === '1'))
+              reactions: message.reactions?.filter(r => !(r.emoji === emoji && r.userId === currentUser.id))
             };
           } else {
-            // Add new reaction
             return {
               ...message,
               reactions: [
                 ...(message.reactions || []),
-                { emoji, userId: '1', userName: 'John Doe' }
+                { emoji, userId: currentUser.id, userName: currentUser.name }
               ]
             };
           }
@@ -396,16 +362,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setTypingUsers(prev => ({
       ...prev,
       [channelId]: isTyping 
-        ? [...(prev[channelId] || []), '1'].filter((v, i, a) => a.indexOf(v) === i)
-        : (prev[channelId] || []).filter(userId => userId !== '1')
+        ? [...(prev[channelId] || []), currentUser.id].filter((v, i, a) => a.indexOf(v) === i)
+        : (prev[channelId] || []).filter(userId => userId !== currentUser.id)
     }));
 
-    // Clear typing after 3 seconds
     if (isTyping) {
       setTimeout(() => {
         setTypingUsers(prev => ({
           ...prev,
-          [channelId]: (prev[channelId] || []).filter(userId => userId !== '1')
+          [channelId]: (prev[channelId] || []).filter(userId => userId !== currentUser.id)
         }));
       }, 3000);
     }
@@ -423,7 +388,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       type: 'info',
       title: 'File Uploaded',
       message: `File "${file.name}" uploaded to ${channels.find(c => c.id === channelId)?.name}`,
-      userId: '1',
+      userId: currentUser.id,
       relatedEntity: {
         type: 'project',
         id: channelId,

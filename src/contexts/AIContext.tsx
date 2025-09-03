@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useNotification } from './NotificationContext';
+import { useUser } from './UserContext';
 
 export interface AISuggestion {
   id: string;
@@ -54,6 +55,17 @@ interface AIContextType {
   insights: AIInsight[];
   analysis: AIAnalysis | null;
   isProcessing: boolean;
+  conversationHistory: Array<{
+    id: string;
+    type: 'user' | 'ai';
+    content: string;
+    timestamp: string;
+    actions?: Array<{
+      label: string;
+      action: () => void;
+      type: 'primary' | 'secondary';
+    }>;
+  }>;
   generateTaskSuggestions: (projectId: string) => Promise<void>;
   predictDeadline: (taskId: string) => Promise<string>;
   analyzeProjectRisk: (projectId: string) => Promise<AIInsight[]>;
@@ -65,6 +77,7 @@ interface AIContextType {
   generateMeetingSummary: (transcript: string) => Promise<string>;
   suggestTaskPriority: (taskData: any) => Promise<string>;
   detectAnomalies: () => Promise<AISuggestion[]>;
+  sendMessage: (message: string) => Promise<void>;
 }
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -79,131 +92,142 @@ export const useAI = () => {
 
 export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { addNotification } = useNotification();
+  const { currentUser } = useUser();
   
-  const [suggestions, setSuggestions] = useState<AISuggestion[]>([
-    {
-      id: '1',
-      type: 'deadline_prediction',
-      title: 'Deadline Risk Detected',
-      description: 'Based on current progress, "Design new landing page" may be delayed by 3 days',
-      confidence: 85,
-      data: { taskId: '1', predictedDelay: 3, currentProgress: 45 },
-      status: 'pending',
-      priority: 'high',
-      actionable: true,
-      estimatedImpact: 'Project timeline may be affected',
-      createdAt: '2024-12-11T10:00:00Z'
-    },
-    {
-      id: '2',
-      type: 'resource_allocation',
-      title: 'Resource Optimization Opportunity',
-      description: 'Sarah Chen has 20% available capacity that could be allocated to high-priority tasks',
-      confidence: 92,
-      data: { userId: '2', availableCapacity: 20, suggestedTasks: ['4', '6'] },
-      status: 'pending',
-      priority: 'medium',
-      actionable: true,
-      estimatedImpact: 'Could improve delivery time by 15%',
-      createdAt: '2024-12-11T11:30:00Z'
-    },
-    {
-      id: '3',
-      type: 'budget_alert',
-      title: 'Budget Variance Alert',
-      description: 'Website Redesign project trending 12% over budget due to scope changes',
-      confidence: 96,
-      data: { projectId: '1', variance: 12, cause: 'scope_changes' },
-      status: 'pending',
-      priority: 'high',
-      actionable: true,
-      estimatedImpact: 'Additional $6,000 budget required',
-      createdAt: '2024-12-11T12:00:00Z'
-    }
-  ]);
-
-  const [insights, setInsights] = useState<AIInsight[]>([
-    {
-      id: '1',
-      category: 'productivity',
-      title: 'Team Productivity Surge',
-      description: 'Team productivity has increased by 15% this month compared to last month',
-      impact: 'medium',
-      actionable: true,
-      recommendations: [
-        'Continue current workflow practices',
-        'Consider expanding successful strategies to other teams',
-        'Document best practices for future reference'
-      ],
-      metrics: {
-        current: 115,
-        target: 100,
-        trend: 'up'
-      },
-      createdAt: '2024-12-11T09:00:00Z'
-    },
-    {
-      id: '2',
-      category: 'timeline',
-      title: 'Critical Path Analysis',
-      description: 'Three tasks on the critical path are at risk of delaying project completion',
-      impact: 'high',
-      actionable: true,
-      recommendations: [
-        'Allocate additional resources to critical tasks',
-        'Consider parallel execution where possible',
-        'Review task dependencies for optimization'
-      ],
-      metrics: {
-        current: 75,
-        target: 100,
-        trend: 'down'
-      },
-      createdAt: '2024-12-11T13:00:00Z'
-    }
-  ]);
-
+  const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
+  const [insights, setInsights] = useState<AIInsight[]>([]);
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<Array<{
+    id: string;
+    type: 'user' | 'ai';
+    content: string;
+    timestamp: string;
+    actions?: Array<{
+      label: string;
+      action: () => void;
+      type: 'primary' | 'secondary';
+    }>;
+  }>>([
+    {
+      id: '1',
+      type: 'ai',
+      content: `Hello ${currentUser.name}! I'm your AI assistant. I can help you with:\n\n• Creating tasks and projects\n• Analyzing project risks\n• Optimizing resource allocation\n• Generating insights and reports\n• Predicting deadlines\n\nTry asking me something like "Create a task for website redesign" or "Analyze risks in my current projects"`,
+      timestamp: new Date().toISOString()
+    }
+  ]);
+
+  const sendMessage = async (message: string): Promise<void> => {
+    // Add user message
+    const userMessage = {
+      id: Date.now().toString(),
+      type: 'user' as const,
+      content: message,
+      timestamp: new Date().toISOString()
+    };
+    setConversationHistory(prev => [...prev, userMessage]);
+
+    setIsProcessing(true);
+
+    try {
+      const result = await processNaturalLanguage(message);
+      
+      // Generate AI response
+      let aiResponse = '';
+      let actions: any[] = [];
+
+      if (message.toLowerCase().includes('create') && message.toLowerCase().includes('task')) {
+        aiResponse = `I'll help you create a task. Based on your request, I suggest:\n\n• Task: "${extractTaskName(message)}"\n• Priority: ${extractPriority(message) || 'Medium'}\n• Assignee: ${extractAssignee(message) || 'You'}\n\nShould I create this task?`;
+        actions = [
+          {
+            label: 'Create Task',
+            action: () => {
+              // This would integrate with TaskContext
+              addNotification({
+                type: 'success',
+                title: 'Task Created by AI',
+                message: `Task created successfully`,
+                userId: currentUser.id,
+                relatedEntity: {
+                  type: 'task',
+                  id: 'ai-created',
+                  name: extractTaskName(message) || 'New Task'
+                }
+              });
+            },
+            type: 'primary'
+          }
+        ];
+      } else if (message.toLowerCase().includes('status') || message.toLowerCase().includes('progress')) {
+        aiResponse = `📊 **Current Status Overview**\n\n**Active Projects:** 2\n**Tasks in Progress:** 3\n**Completed This Week:** 5\n**Team Efficiency:** 87%\n\n**Recent Updates:**\n• Website Redesign: 65% complete\n• Mobile App: 15% complete\n\nWould you like a detailed report?`;
+        actions = [
+          {
+            label: 'Generate Report',
+            action: () => {
+              addNotification({
+                type: 'info',
+                title: 'Report Generated',
+                message: 'Detailed status report has been generated',
+                userId: currentUser.id,
+                relatedEntity: {
+                  type: 'project',
+                  id: 'report',
+                  name: 'Status Report'
+                }
+              });
+            },
+            type: 'secondary'
+          }
+        ];
+      } else {
+        aiResponse = `I understand you're asking about "${message}". I can help you with:\n\n• Creating tasks and projects\n• Checking project status\n• Analyzing team performance\n• Managing deadlines\n• Generating reports\n\nTry being more specific, like "Create a task for..." or "What's the status of..."`;
+      }
+      
+      // Add AI response
+      const aiMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai' as const,
+        content: aiResponse,
+        timestamp: new Date().toISOString(),
+        actions
+      };
+      setConversationHistory(prev => [...prev, aiMessage]);
+      
+    } catch (error) {
+      const errorMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai' as const,
+        content: 'I apologize, but I encountered an error processing your request. Please try rephrasing your question.',
+        timestamp: new Date().toISOString()
+      };
+      setConversationHistory(prev => [...prev, errorMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const generateTaskSuggestions = async (projectId: string) => {
     setIsProcessing(true);
     
-    // Simulate AI processing
     setTimeout(() => {
       const newSuggestion: AISuggestion = {
         id: Date.now().toString(),
         type: 'task_creation',
         title: 'AI Task Suggestions',
-        description: 'Based on project scope and similar projects, AI suggests creating 3 additional tasks',
-        confidence: 78,
+        description: 'Based on project analysis, I suggest creating 3 additional tasks to improve project completeness',
+        confidence: 85,
         data: { 
           projectId,
           suggestedTasks: [
-            {
-              name: 'User acceptance testing',
-              description: 'Conduct UAT with stakeholders',
-              priority: 'High',
-              estimatedHours: 8
-            },
-            {
-              name: 'Performance optimization',
-              description: 'Optimize application performance',
-              priority: 'Medium',
-              estimatedHours: 12
-            },
-            {
-              name: 'Documentation update',
-              description: 'Update technical documentation',
-              priority: 'Low',
-              estimatedHours: 4
-            }
+            { name: 'User acceptance testing', priority: 'High', estimatedHours: 8 },
+            { name: 'Performance optimization', priority: 'Medium', estimatedHours: 12 },
+            { name: 'Documentation update', priority: 'Low', estimatedHours: 4 }
           ]
         },
         status: 'pending',
         priority: 'medium',
         actionable: true,
-        estimatedImpact: 'Improved project completeness',
+        estimatedImpact: 'Improved project completeness and quality',
         createdAt: new Date().toISOString()
       };
       
@@ -214,7 +238,7 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         type: 'info',
         title: 'AI Suggestions Generated',
         message: 'New task suggestions are available for review',
-        userId: '1',
+        userId: currentUser.id,
         relatedEntity: {
           type: 'project',
           id: projectId,
@@ -231,19 +255,6 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       setTimeout(() => {
         const prediction = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         setIsProcessing(false);
-        
-        addNotification({
-          type: 'info',
-          title: 'Deadline Prediction Complete',
-          message: 'AI has analyzed the task and predicted completion date',
-          userId: '1',
-          relatedEntity: {
-            type: 'task',
-            id: taskId,
-            name: 'Deadline Prediction'
-          }
-        });
-        
         resolve(prediction);
       }, 1500);
     });
@@ -278,19 +289,6 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         
         setInsights(prev => [...riskInsights, ...prev]);
         setIsProcessing(false);
-        
-        addNotification({
-          type: 'warning',
-          title: 'Risk Analysis Complete',
-          message: 'AI has identified potential project risks',
-          userId: '1',
-          relatedEntity: {
-            type: 'project',
-            id: projectId,
-            name: 'Risk Analysis'
-          }
-        });
-        
         resolve(riskInsights);
       }, 2500);
     });
@@ -310,10 +308,6 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             confidence: 88,
             data: { 
               projectId,
-              reallocation: [
-                { from: 'Mike Johnson', to: 'Alex Rodriguez', tasks: ['Task A', 'Task B'] },
-                { from: 'Sarah Chen', to: 'Emily Davis', tasks: ['Task C'] }
-              ],
               expectedImprovement: '15% faster delivery'
             },
             status: 'pending',
@@ -326,19 +320,6 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         
         setSuggestions(prev => [...optimizationSuggestions, ...prev]);
         setIsProcessing(false);
-        
-        addNotification({
-          type: 'success',
-          title: 'Optimization Suggestions Ready',
-          message: 'AI has generated resource optimization recommendations',
-          userId: '1',
-          relatedEntity: {
-            type: 'project',
-            id: projectId,
-            name: 'Resource Optimization'
-          }
-        });
-        
         resolve(optimizationSuggestions);
       }, 3000);
     });
@@ -373,19 +354,6 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         
         setAnalysis(projectAnalysis);
         setIsProcessing(false);
-        
-        addNotification({
-          type: 'info',
-          title: 'Project Analysis Complete',
-          message: 'Comprehensive AI analysis is now available',
-          userId: '1',
-          relatedEntity: {
-            type: 'project',
-            id: projectId,
-            name: 'Project Analysis'
-          }
-        });
-        
         resolve(projectAnalysis);
       }, 4000);
     });
@@ -404,7 +372,7 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         type: 'success',
         title: 'AI Suggestion Implemented',
         message: `Applied suggestion: ${suggestion.title}`,
-        userId: '1',
+        userId: currentUser.id,
         relatedEntity: {
           type: 'project',
           id: 'ai',
@@ -423,31 +391,11 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const processNaturalLanguage = async (input: string): Promise<any> => {
-    setIsProcessing(true);
-    
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Advanced NLP processing simulation
         let result: any = {};
         
-        if (input.toLowerCase().includes('create') && input.toLowerCase().includes('project')) {
-          result = {
-            intent: 'create_project',
-            entities: {
-              projectName: extractProjectName(input),
-              teamSize: extractNumber(input) || 3,
-              duration: extractDuration(input) || '1 month',
-              priority: extractPriority(input) || 'medium'
-            },
-            confidence: 0.92,
-            suggestedActions: [
-              'Create new project',
-              'Assign team members',
-              'Set up initial tasks',
-              'Define milestones'
-            ]
-          };
-        } else if (input.toLowerCase().includes('task') || input.toLowerCase().includes('todo')) {
+        if (input.toLowerCase().includes('create') && input.toLowerCase().includes('task')) {
           result = {
             intent: 'create_task',
             entities: {
@@ -456,60 +404,24 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
               priority: extractPriority(input) || 'medium',
               dueDate: extractDate(input)
             },
-            confidence: 0.87,
-            suggestedActions: [
-              'Create new task',
-              'Assign to team member',
-              'Set due date',
-              'Add to project'
-            ]
+            confidence: 0.87
           };
-        } else if (input.toLowerCase().includes('meeting') || input.toLowerCase().includes('schedule')) {
+        } else if (input.toLowerCase().includes('status') || input.toLowerCase().includes('progress')) {
           result = {
-            intent: 'schedule_meeting',
-            entities: {
-              title: extractMeetingTitle(input),
-              attendees: extractAttendees(input),
-              date: extractDate(input),
-              duration: extractDuration(input) || '1 hour'
-            },
-            confidence: 0.89,
-            suggestedActions: [
-              'Create calendar event',
-              'Send invitations',
-              'Set up meeting room',
-              'Prepare agenda'
-            ]
+            intent: 'status_query',
+            entities: {},
+            confidence: 0.92
           };
         } else {
           result = {
             intent: 'general_query',
             entities: {},
-            confidence: 0.65,
-            suggestedActions: [
-              'Clarify request',
-              'Provide more context',
-              'Try specific commands'
-            ]
+            confidence: 0.65
           };
         }
         
-        setIsProcessing(false);
-        
-        addNotification({
-          type: 'info',
-          title: 'AI Processing Complete',
-          message: `Processed: "${input.substring(0, 50)}${input.length > 50 ? '...' : ''}"`,
-          userId: '1',
-          relatedEntity: {
-            type: 'project',
-            id: 'ai',
-            name: 'Natural Language Processing'
-          }
-        });
-        
         resolve(result);
-      }, 1500);
+      }, 1000);
     });
   };
 
@@ -518,39 +430,8 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     
     return new Promise((resolve) => {
       setTimeout(() => {
-        const summary = `
-**Meeting Summary**
-
-**Key Points Discussed:**
-- Project timeline review and milestone updates
-- Resource allocation for upcoming sprint
-- Budget review and expense approvals
-
-**Action Items:**
-- Sarah to complete design mockups by Friday
-- Mike to review code and provide feedback
-- Team to schedule follow-up meeting next week
-
-**Decisions Made:**
-- Approved additional budget for design tools
-- Agreed to extend deadline by 3 days
-- Decided to add one more developer to the team
-        `;
-        
+        const summary = `**Meeting Summary**\n\n**Key Points:**\n• Project timeline review\n• Resource allocation discussion\n• Budget review\n\n**Action Items:**\n• Complete design mockups by Friday\n• Review code and provide feedback\n• Schedule follow-up meeting`;
         setIsProcessing(false);
-        
-        addNotification({
-          type: 'success',
-          title: 'Meeting Summary Generated',
-          message: 'AI has generated a comprehensive meeting summary',
-          userId: '1',
-          relatedEntity: {
-            type: 'project',
-            id: 'meeting',
-            name: 'Meeting Summary'
-          }
-        });
-        
         resolve(summary);
       }, 3000);
     });
@@ -561,7 +442,6 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     
     return new Promise((resolve) => {
       setTimeout(() => {
-        // AI logic for priority suggestion
         let priority = 'Medium';
         
         if (taskData.dueDate) {
@@ -569,11 +449,6 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           if (daysUntilDue <= 2) priority = 'High';
           else if (daysUntilDue <= 7) priority = 'Medium';
           else priority = 'Low';
-        }
-        
-        if (taskData.description?.toLowerCase().includes('urgent') || 
-            taskData.description?.toLowerCase().includes('critical')) {
-          priority = 'High';
         }
         
         setIsProcessing(false);
@@ -609,54 +484,15 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         
         setSuggestions(prev => [...anomalies, ...prev]);
         setIsProcessing(false);
-        
-        addNotification({
-          type: 'warning',
-          title: 'Anomaly Detected',
-          message: 'AI has detected unusual patterns in project activity',
-          userId: '1',
-          relatedEntity: {
-            type: 'project',
-            id: 'anomaly',
-            name: 'Anomaly Detection'
-          }
-        });
-        
         resolve(anomalies);
       }, 2000);
     });
   };
 
   // Helper functions for NLP
-  const extractProjectName = (input: string): string => {
-    const match = input.match(/project\s+(?:called\s+|named\s+)?["']?([^"']+)["']?/i);
-    return match ? match[1].trim() : 'New Project';
-  };
-
   const extractTaskName = (input: string): string => {
-    const match = input.match(/task\s+(?:to\s+|called\s+)?["']?([^"']+)["']?/i);
+    const match = input.match(/task\s+(?:for\s+|called\s+)?["']?([^"']+)["']?/i);
     return match ? match[1].trim() : 'New Task';
-  };
-
-  const extractMeetingTitle = (input: string): string => {
-    const match = input.match(/meeting\s+(?:about\s+|for\s+)?["']?([^"']+)["']?/i);
-    return match ? match[1].trim() : 'Team Meeting';
-  };
-
-  const extractNumber = (input: string): number | null => {
-    const match = input.match(/(\d+)/);
-    return match ? parseInt(match[1]) : null;
-  };
-
-  const extractDuration = (input: string): string | null => {
-    const match = input.match(/(\d+\s*(?:day|week|month|hour)s?)/i);
-    return match ? match[1] : null;
-  };
-
-  const extractPriority = (input: string): string | null => {
-    if (input.toLowerCase().includes('urgent') || input.toLowerCase().includes('high')) return 'high';
-    if (input.toLowerCase().includes('low')) return 'low';
-    return null;
   };
 
   const extractAssignee = (input: string): string | null => {
@@ -664,14 +500,15 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return match ? match[1] : null;
   };
 
+  const extractPriority = (input: string): string | null => {
+    if (input.toLowerCase().includes('urgent') || input.toLowerCase().includes('high')) return 'High';
+    if (input.toLowerCase().includes('low')) return 'Low';
+    return null;
+  };
+
   const extractDate = (input: string): string | null => {
     const match = input.match(/(?:by\s+|due\s+|on\s+)(\w+\s+\d+)/i);
     return match ? match[1] : null;
-  };
-
-  const extractAttendees = (input: string): string[] => {
-    const matches = input.match(/@(\w+)/g);
-    return matches ? matches.map(m => m.substring(1)) : [];
   };
 
   return (
@@ -680,6 +517,7 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       insights,
       analysis,
       isProcessing,
+      conversationHistory,
       generateTaskSuggestions,
       predictDeadline,
       analyzeProjectRisk,
@@ -690,7 +528,8 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       processNaturalLanguage,
       generateMeetingSummary,
       suggestTaskPriority,
-      detectAnomalies
+      detectAnomalies,
+      sendMessage
     }}>
       {children}
     </AIContext.Provider>

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useNotification } from './NotificationContext';
 
 export interface Project {
   id: string;
@@ -12,10 +13,12 @@ export interface Project {
   spent: number;
   progress: number;
   manager: {
+    id: string;
     name: string;
     initials: string;
   };
   team: Array<{
+    id: string;
     name: string;
     initials: string;
     role: string;
@@ -25,6 +28,8 @@ export interface Project {
   changes: ChangeRequest[];
   createdAt: string;
   updatedAt: string;
+  isPubliclyShared: boolean;
+  shareSettings?: any;
 }
 
 export interface Milestone {
@@ -46,6 +51,7 @@ export interface Risk {
   impact: 'Low' | 'Medium' | 'High';
   status: 'Open' | 'Mitigated' | 'Closed';
   owner: string;
+  ownerId: string;
   mitigation: string;
   projectId: string;
   createdAt: string;
@@ -58,6 +64,7 @@ export interface ChangeRequest {
   type: 'Scope' | 'Timeline' | 'Budget' | 'Resource';
   status: 'Pending' | 'Approved' | 'Rejected' | 'Implemented';
   requestedBy: string;
+  requestedById: string;
   impact: string;
   cost: number;
   timeImpact: number;
@@ -73,6 +80,7 @@ export interface Resource {
   availability: number;
   skills?: string[];
   department?: string;
+  assignedProjects: string[];
 }
 
 export interface WorkflowTemplate {
@@ -101,7 +109,7 @@ interface ProjectContextType {
   changeRequests: ChangeRequest[];
   resources: Resource[];
   workflowTemplates: WorkflowTemplate[];
-  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'milestones' | 'risks' | 'changes'>) => void;
   updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   addMilestone: (milestone: Omit<Milestone, 'id' | 'createdAt'>) => void;
@@ -119,6 +127,9 @@ interface ProjectContextType {
   addWorkflowTemplate: (template: Omit<WorkflowTemplate, 'id' | 'createdAt'>) => void;
   updateWorkflowTemplate: (id: string, updates: Partial<WorkflowTemplate>) => void;
   deleteWorkflowTemplate: (id: string) => void;
+  getProjectProgress: (projectId: string) => number;
+  getProjectBudgetUtilization: (projectId: string) => number;
+  getProjectTeamSize: (projectId: string) => number;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -132,6 +143,8 @@ export const useProject = () => {
 };
 
 export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { addNotification } = useNotification();
+  
   const [projects, setProjects] = useState<Project[]>([
     {
       id: '1',
@@ -144,15 +157,16 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       budget: 50000,
       spent: 18500,
       progress: 65,
-      manager: { name: 'Sarah Chen', initials: 'SC' },
+      manager: { id: '2', name: 'Sarah Chen', initials: 'SC' },
       team: [
-        { name: 'Mike Johnson', initials: 'MJ', role: 'Frontend Developer' },
-        { name: 'Alex Rodriguez', initials: 'AR', role: 'UI/UX Designer' },
-        { name: 'Emily Davis', initials: 'ED', role: 'Backend Developer' }
+        { id: '3', name: 'Mike Johnson', initials: 'MJ', role: 'Frontend Developer' },
+        { id: '4', name: 'Alex Rodriguez', initials: 'AR', role: 'UI/UX Designer' },
+        { id: '5', name: 'Emily Davis', initials: 'ED', role: 'Backend Developer' }
       ],
       milestones: [],
       risks: [],
       changes: [],
+      isPubliclyShared: false,
       createdAt: '2024-11-01T09:00:00Z',
       updatedAt: '2024-12-11T14:30:00Z'
     },
@@ -167,14 +181,15 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       budget: 120000,
       spent: 0,
       progress: 15,
-      manager: { name: 'John Doe', initials: 'JD' },
+      manager: { id: '1', name: 'John Doe', initials: 'JD' },
       team: [
-        { name: 'Lisa Wang', initials: 'LW', role: 'Mobile Developer' },
-        { name: 'Sarah Chen', initials: 'SC', role: 'Product Manager' }
+        { id: '6', name: 'Lisa Wang', initials: 'LW', role: 'Mobile Developer' },
+        { id: '2', name: 'Sarah Chen', initials: 'SC', role: 'Product Manager' }
       ],
       milestones: [],
       risks: [],
       changes: [],
+      isPubliclyShared: false,
       createdAt: '2024-12-01T09:00:00Z',
       updatedAt: '2024-12-11T10:15:00Z'
     }
@@ -212,6 +227,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       impact: 'High',
       status: 'Open',
       owner: 'Mike Johnson',
+      ownerId: '3',
       mitigation: 'Create fallback solutions and maintain API documentation',
       projectId: '1',
       createdAt: '2024-11-15T10:00:00Z'
@@ -226,6 +242,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       type: 'Scope',
       status: 'Approved',
       requestedBy: 'Client',
+      requestedById: 'client-1',
       impact: 'Additional 2 weeks development time',
       cost: 8000,
       timeImpact: 14,
@@ -242,7 +259,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       cost: 120,
       availability: 80,
       skills: ['Project Management', 'Agile', 'Scrum'],
-      department: 'Management'
+      department: 'Management',
+      assignedProjects: ['1', '2']
     },
     {
       id: '2',
@@ -251,14 +269,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       cost: 95,
       availability: 100,
       skills: ['React', 'TypeScript', 'Node.js'],
-      department: 'Engineering'
-    },
-    {
-      id: '3',
-      name: 'Design Software License',
-      type: 'Software',
-      cost: 50,
-      availability: 100
+      department: 'Engineering',
+      assignedProjects: ['1']
     }
   ]);
 
@@ -284,52 +296,127 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           duration: 3,
           dependencies: ['1'],
           order: 2
-        },
-        {
-          id: '3',
-          name: 'Development',
-          description: 'Implement the feature',
-          duration: 5,
-          dependencies: ['2'],
-          order: 3
-        },
-        {
-          id: '4',
-          name: 'Testing',
-          description: 'Test the feature thoroughly',
-          duration: 2,
-          dependencies: ['3'],
-          order: 4
         }
       ],
       createdAt: '2024-10-01T09:00:00Z'
     }
   ]);
 
-  // Project CRUD operations
-  const addProject = (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addProject = (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'milestones' | 'risks' | 'changes'>) => {
     const newProject: Project = {
       ...projectData,
       id: Date.now().toString(),
+      milestones: [],
+      risks: [],
+      changes: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
     setProjects(prev => [...prev, newProject]);
+
+    // Notify team members
+    newProject.team.forEach(member => {
+      addNotification({
+        type: 'info',
+        title: 'Added to Project',
+        message: `You have been added to project "${newProject.name}"`,
+        userId: member.id,
+        relatedEntity: {
+          type: 'project',
+          id: newProject.id,
+          name: newProject.name
+        },
+        actionUrl: '/projects'
+      });
+    });
+
+    // Notify manager
+    addNotification({
+      type: 'success',
+      title: 'Project Created',
+      message: `Project "${newProject.name}" has been created successfully`,
+      userId: newProject.manager.id,
+      relatedEntity: {
+        type: 'project',
+        id: newProject.id,
+        name: newProject.name
+      },
+      actionUrl: '/projects'
+    });
   };
 
   const updateProject = (id: string, updates: Partial<Project>) => {
-    setProjects(prev => prev.map(project => 
-      project.id === id 
-        ? { ...project, ...updates, updatedAt: new Date().toISOString() }
-        : project
-    ));
+    const oldProject = projects.find(p => p.id === id);
+    if (!oldProject) return;
+
+    const updatedProject = { ...oldProject, ...updates, updatedAt: new Date().toISOString() };
+    setProjects(prev => prev.map(project => project.id === id ? updatedProject : project));
+
+    // Status change notifications
+    if (updates.status && updates.status !== oldProject.status) {
+      const statusMessage = updates.status === 'Completed' ? 
+        `🎉 Project "${updatedProject.name}" has been completed!` :
+        `Project "${updatedProject.name}" status changed to ${updates.status}`;
+
+      // Notify all team members
+      updatedProject.team.forEach(member => {
+        addNotification({
+          type: updates.status === 'Completed' ? 'success' : 'info',
+          title: 'Project Status Update',
+          message: statusMessage,
+          userId: member.id,
+          relatedEntity: {
+            type: 'project',
+            id: updatedProject.id,
+            name: updatedProject.name
+          },
+          actionUrl: '/projects'
+        });
+      });
+    }
+
+    // Budget alerts
+    if (updates.spent && updates.spent !== oldProject.spent) {
+      const utilization = (updates.spent / updatedProject.budget) * 100;
+      if (utilization > 90) {
+        addNotification({
+          type: 'warning',
+          title: 'Budget Alert',
+          message: `Project "${updatedProject.name}" is ${utilization.toFixed(1)}% over budget`,
+          userId: updatedProject.manager.id,
+          relatedEntity: {
+            type: 'project',
+            id: updatedProject.id,
+            name: updatedProject.name
+          },
+          actionUrl: '/projects'
+        });
+      }
+    }
   };
 
   const deleteProject = (id: string) => {
-    setProjects(prev => prev.filter(project => project.id !== id));
+    const project = projects.find(p => p.id === id);
+    if (project) {
+      setProjects(prev => prev.filter(project => project.id !== id));
+      
+      // Notify all team members
+      project.team.forEach(member => {
+        addNotification({
+          type: 'warning',
+          title: 'Project Deleted',
+          message: `Project "${project.name}" has been deleted`,
+          userId: member.id,
+          relatedEntity: {
+            type: 'project',
+            id: project.id,
+            name: project.name
+          }
+        });
+      });
+    }
   };
 
-  // Milestone CRUD operations
   const addMilestone = (milestoneData: Omit<Milestone, 'id' | 'createdAt'>) => {
     const newMilestone: Milestone = {
       ...milestoneData,
@@ -337,19 +424,57 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       createdAt: new Date().toISOString()
     };
     setMilestones(prev => [...prev, newMilestone]);
+
+    const project = projects.find(p => p.id === milestoneData.projectId);
+    if (project) {
+      addNotification({
+        type: 'info',
+        title: 'Milestone Created',
+        message: `New milestone "${newMilestone.name}" added to ${project.name}`,
+        userId: project.manager.id,
+        relatedEntity: {
+          type: 'project',
+          id: project.id,
+          name: project.name
+        },
+        actionUrl: '/project-management'
+      });
+    }
   };
 
   const updateMilestone = (id: string, updates: Partial<Milestone>) => {
-    setMilestones(prev => prev.map(milestone => 
-      milestone.id === id ? { ...milestone, ...updates } : milestone
-    ));
+    const oldMilestone = milestones.find(m => m.id === id);
+    if (!oldMilestone) return;
+
+    const updatedMilestone = { ...oldMilestone, ...updates };
+    setMilestones(prev => prev.map(milestone => milestone.id === id ? updatedMilestone : milestone));
+
+    if (updates.status === 'Completed' && oldMilestone.status !== 'Completed') {
+      const project = projects.find(p => p.id === updatedMilestone.projectId);
+      if (project) {
+        addNotification({
+          type: 'success',
+          title: 'Milestone Completed! 🎯',
+          message: `Milestone "${updatedMilestone.name}" in ${project.name} has been completed`,
+          userId: project.manager.id,
+          relatedEntity: {
+            type: 'project',
+            id: project.id,
+            name: project.name
+          },
+          actionUrl: '/project-management'
+        });
+      }
+    }
   };
 
   const deleteMilestone = (id: string) => {
-    setMilestones(prev => prev.filter(milestone => milestone.id !== id));
+    const milestone = milestones.find(m => m.id === id);
+    if (milestone) {
+      setMilestones(prev => prev.filter(milestone => milestone.id !== id));
+    }
   };
 
-  // Risk CRUD operations
   const addRisk = (riskData: Omit<Risk, 'id' | 'createdAt'>) => {
     const newRisk: Risk = {
       ...riskData,
@@ -357,19 +482,32 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       createdAt: new Date().toISOString()
     };
     setRisks(prev => [...prev, newRisk]);
+
+    const project = projects.find(p => p.id === riskData.projectId);
+    if (project) {
+      addNotification({
+        type: 'warning',
+        title: 'New Risk Identified',
+        message: `Risk "${newRisk.title}" identified in ${project.name}`,
+        userId: project.manager.id,
+        relatedEntity: {
+          type: 'project',
+          id: project.id,
+          name: project.name
+        },
+        actionUrl: '/project-management'
+      });
+    }
   };
 
   const updateRisk = (id: string, updates: Partial<Risk>) => {
-    setRisks(prev => prev.map(risk => 
-      risk.id === id ? { ...risk, ...updates } : risk
-    ));
+    setRisks(prev => prev.map(risk => risk.id === id ? { ...risk, ...updates } : risk));
   };
 
   const deleteRisk = (id: string) => {
     setRisks(prev => prev.filter(risk => risk.id !== id));
   };
 
-  // Change Request CRUD operations
   const addChangeRequest = (changeData: Omit<ChangeRequest, 'id' | 'createdAt'>) => {
     const newChange: ChangeRequest = {
       ...changeData,
@@ -377,19 +515,53 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       createdAt: new Date().toISOString()
     };
     setChangeRequests(prev => [...prev, newChange]);
+
+    const project = projects.find(p => p.id === changeData.projectId);
+    if (project) {
+      addNotification({
+        type: 'info',
+        title: 'Change Request Submitted',
+        message: `Change request "${newChange.title}" submitted for ${project.name}`,
+        userId: project.manager.id,
+        relatedEntity: {
+          type: 'project',
+          id: project.id,
+          name: project.name
+        },
+        actionUrl: '/project-management'
+      });
+    }
   };
 
   const updateChangeRequest = (id: string, updates: Partial<ChangeRequest>) => {
-    setChangeRequests(prev => prev.map(change => 
-      change.id === id ? { ...change, ...updates } : change
-    ));
+    const oldChange = changeRequests.find(c => c.id === id);
+    if (!oldChange) return;
+
+    setChangeRequests(prev => prev.map(change => change.id === id ? { ...change, ...updates } : change));
+
+    if (updates.status && updates.status !== oldChange.status) {
+      const project = projects.find(p => p.id === oldChange.projectId);
+      if (project) {
+        addNotification({
+          type: updates.status === 'Approved' ? 'success' : 'info',
+          title: 'Change Request Updated',
+          message: `Change request "${oldChange.title}" has been ${updates.status?.toLowerCase()}`,
+          userId: oldChange.requestedById,
+          relatedEntity: {
+            type: 'project',
+            id: project.id,
+            name: project.name
+          },
+          actionUrl: '/project-management'
+        });
+      }
+    }
   };
 
   const deleteChangeRequest = (id: string) => {
     setChangeRequests(prev => prev.filter(change => change.id !== id));
   };
 
-  // Resource CRUD operations
   const addResource = (resourceData: Omit<Resource, 'id'>) => {
     const newResource: Resource = {
       ...resourceData,
@@ -408,7 +580,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setResources(prev => prev.filter(resource => resource.id !== id));
   };
 
-  // Workflow Template CRUD operations
   const addWorkflowTemplate = (templateData: Omit<WorkflowTemplate, 'id' | 'createdAt'>) => {
     const newTemplate: WorkflowTemplate = {
       ...templateData,
@@ -426,6 +597,24 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const deleteWorkflowTemplate = (id: string) => {
     setWorkflowTemplates(prev => prev.filter(template => template.id !== id));
+  };
+
+  // Helper functions for interrelated data
+  const getProjectProgress = (projectId: string) => {
+    // This would be calculated from tasks in a real implementation
+    const project = projects.find(p => p.id === projectId);
+    return project ? project.progress : 0;
+  };
+
+  const getProjectBudgetUtilization = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project || project.budget === 0) return 0;
+    return (project.spent / project.budget) * 100;
+  };
+
+  const getProjectTeamSize = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    return project ? project.team.length : 0;
   };
 
   return (
@@ -453,7 +642,10 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       deleteResource,
       addWorkflowTemplate,
       updateWorkflowTemplate,
-      deleteWorkflowTemplate
+      deleteWorkflowTemplate,
+      getProjectProgress,
+      getProjectBudgetUtilization,
+      getProjectTeamSize
     }}>
       {children}
     </ProjectContext.Provider>

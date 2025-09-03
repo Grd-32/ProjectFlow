@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
+import { useTask } from '../contexts/TaskContext';
+import { useProject } from '../contexts/ProjectContext';
 import { 
   LayoutDashboard, 
   CheckSquare, 
@@ -13,13 +15,15 @@ import {
   BarChart3,
   Settings,
   ChevronRight,
-  Plus
+  Plus,
+  Briefcase
 } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
   const { hasPermission } = useUser();
-
+  const { tasks } = useTask();
+  const { projects } = useProject();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -31,29 +35,84 @@ const Sidebar = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  const baseNavigationItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
-    { icon: FolderOpen, label: 'Projects', path: '/projects' },
-    { icon: Target, label: 'Project Mgmt', path: '/project-management' },
-    { icon: Target, label: 'Goals', path: '/goals' },
-    { icon: FileText, label: 'Docs', path: '/docs' },
-    { icon: Calendar, label: 'Calendar', path: '/calendar' },
-    { icon: Zap, label: 'Automations', path: '/automations' },
-  ];
 
+  const baseNavigationItems = [
+    { 
+      icon: LayoutDashboard, 
+      label: 'Dashboard', 
+      path: '/',
+      count: null
+    },
+    { 
+      icon: CheckSquare, 
+      label: 'Tasks', 
+      path: '/tasks',
+      count: tasks.filter(t => t.status !== 'Complete').length
+    },
+    { 
+      icon: FolderOpen, 
+      label: 'Projects', 
+      path: '/projects',
+      count: projects.filter(p => p.status === 'Active').length
+    },
+    { 
+      icon: Briefcase, 
+      label: 'Project Mgmt', 
+      path: '/project-management',
+      count: null
+    },
+    { 
+      icon: Target, 
+      label: 'Goals', 
+      path: '/goals',
+      count: null
+    },
+    { 
+      icon: FileText, 
+      label: 'Docs', 
+      path: '/docs',
+      count: null
+    },
+    { 
+      icon: Calendar, 
+      label: 'Calendar', 
+      path: '/calendar',
+      count: null
+    },
+    { 
+      icon: Zap, 
+      label: 'Automations', 
+      path: '/automations',
+      count: null
+    },
+  ];
 
   const navigationItems = [
     ...baseNavigationItems,
-    ...(hasPermission('manage_users') ? [{ icon: Users, label: 'Users', path: '/users' }] : []),
-    ...(hasPermission('view_analytics') ? [{ icon: BarChart3, label: 'Reports', path: '/reports' }] : []),
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    ...(hasPermission('manage_users') ? [{ 
+      icon: Users, 
+      label: 'Users', 
+      path: '/users',
+      count: null
+    }] : []),
+    ...(hasPermission('view_analytics') ? [{ 
+      icon: BarChart3, 
+      label: 'Reports', 
+      path: '/reports',
+      count: null
+    }] : []),
+    { 
+      icon: Settings, 
+      label: 'Settings', 
+      path: '/settings',
+      count: null
+    },
   ];
 
   const workspaceItems = [
-    { emoji: '🧠', label: 'My Focus', count: 12 },
-    { emoji: '🚀', label: 'Product Launch', count: 24 },
-    { emoji: '📈', label: 'Marketing', count: 8 },
+    { emoji: '🧠', label: 'My Focus', count: tasks.filter(t => t.assignee.id === '1' && t.status !== 'Complete').length },
+    { emoji: '🚀', label: 'Website Redesign', count: tasks.filter(t => t.projectId === '1').length },
+    { emoji: '📱', label: 'Mobile App', count: tasks.filter(t => t.projectId === '2').length },
     { emoji: '💡', label: 'Ideas', count: 15 },
   ];
 
@@ -80,14 +139,21 @@ const Sidebar = () => {
             <Link
               key={index}
               to={item.path}
-              className={`group flex items-center ${isMobile ? 'px-2 py-2' : 'px-3 py-3'} text-sm font-medium rounded-lg transition-colors duration-150 ${
+              className={`group flex items-center justify-between ${isMobile ? 'px-2 py-2' : 'px-3 py-3'} text-sm font-medium rounded-lg transition-colors duration-150 ${
                 location.pathname === item.path
                   ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-gray-600'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              <item.icon className={`${isMobile ? 'mr-2' : 'mr-3'} h-5 w-5`} />
-              <span className={isMobile ? 'text-xs' : ''}>{item.label}</span>
+              <div className="flex items-center">
+                <item.icon className={`${isMobile ? 'mr-2' : 'mr-3'} h-5 w-5`} />
+                <span className={isMobile ? 'text-xs' : ''}>{item.label}</span>
+              </div>
+              {item.count !== null && item.count > 0 && (
+                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs px-2 py-1 rounded-full">
+                  {item.count}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
@@ -104,10 +170,9 @@ const Sidebar = () => {
           </div>
           <div className="space-y-1 mt-2">
             {workspaceItems.map((item, index) => (
-              <a
+              <button
                 key={index}
-                href="#"
-                className={`group flex items-center justify-between ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-150`}
+                className={`w-full group flex items-center justify-between ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-150`}
               >
                 <div className="flex items-center">
                   <span className={`${isMobile ? 'mr-2 text-sm' : 'mr-3 text-base'}`}>{item.emoji}</span>
@@ -116,7 +181,7 @@ const Sidebar = () => {
                 <span className={`text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 ${isMobile ? 'px-1 py-0.5' : 'px-2 py-1'} rounded-full`}>
                   {item.count}
                 </span>
-              </a>
+              </button>
             ))}
           </div>
         </div>
