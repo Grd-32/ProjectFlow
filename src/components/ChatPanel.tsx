@@ -108,27 +108,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
       setNewMessage('');
       setIsTyping(false);
       setTyping(activeChannel, false);
-
-      // Add notification for mentions
-      const mentions = messageContent.match(/@(\w+\s+\w+)/g);
-      if (mentions) {
-        mentions.forEach(mention => {
-          const mentionedUser = users.find(u => u.name === mention.substring(1));
-          if (mentionedUser) {
-            addNotification({
-              type: 'info',
-              title: 'You were mentioned',
-              message: `${currentUser.name} mentioned you in ${currentChannel?.name}`,
-              userId: mentionedUser.id,
-              relatedEntity: {
-                type: 'project',
-                id: activeChannel,
-                name: currentChannel?.name || 'Chat'
-              }
-            });
-          }
-        });
-      }
     }
   };
 
@@ -182,18 +161,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
     if (files && files.length > 0 && activeChannel) {
       Array.from(files).forEach(file => {
         uploadFile(activeChannel, file);
-        
-        addNotification({
-          type: 'info',
-          title: 'File Uploaded',
-          message: `File "${file.name}" uploaded to ${currentChannel?.name}`,
-          userId: currentUser.id,
-          relatedEntity: {
-            type: 'project',
-            id: activeChannel,
-            name: file.name
-          }
-        });
       });
     }
   };
@@ -224,18 +191,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
       isPrivate: false
     });
     setShowNewChannelForm(false);
-
-    addNotification({
-      type: 'success',
-      title: 'Channel Created',
-      message: `New channel "${newChannelData.name}" has been created`,
-      userId: currentUser.id,
-      relatedEntity: {
-        type: 'project',
-        id: 'new-channel',
-        name: newChannelData.name
-      }
-    });
   };
 
   const copyMessage = (content: string) => {
@@ -315,12 +270,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
             {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
           </button>
           <button
-            onClick={() => setShowChannelSettings(!showChannelSettings)}
-            className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-          >
-            <Settings className="h-4 w-4" />
-          </button>
-          <button
             onClick={onClose}
             className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
           >
@@ -362,20 +311,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search messages..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-          />
-        </div>
-      </div>
-
       {/* New Channel Form */}
       {showNewChannelForm && (
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
@@ -388,24 +323,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
               className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
               required
             />
-            <input
-              type="text"
-              placeholder="Description (optional)"
-              value={newChannelData.description}
-              onChange={(e) => setNewChannelData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-            />
-            <div className="flex items-center space-x-3">
-              <label className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-                <input
-                  type="checkbox"
-                  checked={newChannelData.isPrivate}
-                  onChange={(e) => setNewChannelData(prev => ({ ...prev, isPrivate: e.target.checked }))}
-                  className="rounded border-gray-300 dark:border-gray-600"
-                />
-                <span>Private Channel</span>
-              </label>
-            </div>
             <div className="flex space-x-2">
               <button
                 type="submit"
@@ -422,26 +339,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
           </form>
-        </div>
-      )}
-
-      {/* Reply Banner */}
-      {replyingTo && (
-        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Reply className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm text-blue-700 dark:text-blue-300">
-                Replying to {channelMessages.find(m => m.id === replyingTo)?.authorName}
-              </span>
-            </div>
-            <button
-              onClick={() => setReplyingTo(null)}
-              className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
         </div>
       )}
 
@@ -517,14 +414,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
                     </div>
                   ) : (
                     <>
-                      {message.replyTo && (
-                        <div className="mb-2 p-2 bg-gray-100 dark:bg-gray-700 rounded border-l-2 border-blue-500">
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            Replying to {channelMessages.find(m => m.id === message.replyTo)?.authorName}
-                          </p>
-                        </div>
-                      )}
-                      
                       {message.type === 'file' ? (
                         <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 max-w-xs">
                           <div className="flex items-center space-x-2">
@@ -591,12 +480,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
                           <span className="text-gray-600 dark:text-gray-400">{reaction.count}</span>
                         </button>
                       ))}
-                      <button
-                        onClick={() => setShowEmojiPicker(showEmojiPicker === message.id ? null : message.id)}
-                        className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
                     </div>
                   )}
                 </div>
@@ -617,52 +500,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose }) => {
                   >
                     <Reply className="h-3 w-3" />
                   </button>
-                  <button
-                    onClick={() => setShowMessageActions(showMessageActions === message.id ? null : message.id)}
-                    className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-                  >
-                    <MoreHorizontal className="h-3 w-3" />
-                  </button>
-                  
-                  {/* Message Actions Dropdown */}
-                  {showMessageActions === message.id && (
-                    <div className="absolute right-0 top-8 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                      <button
-                        onClick={() => {
-                          copyMessage(message.content);
-                          setShowMessageActions(null);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
-                      >
-                        <Copy className="h-4 w-4" />
-                        <span>Copy Message</span>
-                      </button>
-                      {message.authorId === currentUser.id && (
-                        <>
-                          <button
-                            onClick={() => {
-                              setEditingMessage(message.id);
-                              setEditContent(message.content);
-                              setShowMessageActions(null);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                            <span>Edit Message</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              handleDeleteMessage(message.id);
-                              setShowMessageActions(null);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span>Delete Message</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
+                  {message.authorId === currentUser.id && (
+                    <button
+                      onClick={() => {
+                        setEditingMessage(message.id);
+                        setEditContent(message.content);
+                      }}
+                      className="p-1 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 rounded"
+                      title="Edit"
+                    >
+                      <Edit3 className="h-3 w-3" />
+                    </button>
                   )}
                 </div>
               </div>
