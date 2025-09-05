@@ -98,6 +98,7 @@ function App() {
               </IntegrationProvider>
             </NotificationProvider>
           </UserProvider>
+                    </ChatProvider>
         </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
