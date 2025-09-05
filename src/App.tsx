@@ -57,18 +57,12 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <LanguageProvider>
-          <NotificationProvider>
-            <IntegrationProvider>
-              <AIProvider>
-                <WorkspaceProvider>
-                  <TimeTrackingProvider>
-                    <ChatProvider>
           <UserProvider>
             <NotificationProvider>
               <IntegrationProvider>
-                <AIProvider>
-                  <WorkspaceProvider>
-                    <TimeTrackingProvider>
+                <WorkspaceProvider>
+                  <TimeTrackingProvider>
+                    <AIProvider>
                       <ChatProvider>
                         <TaskProvider>
                           <ProjectProvider>
@@ -87,23 +81,20 @@ function App() {
                                   <Route path="/reports" element={<Reports />} />
                                   <Route path="/settings" element={<Settings />} />
                                 </Routes>
+                                <OfflineMode />
+                                <VoiceCommands />
+                                <PWAInstallPrompt />
                               </Layout>
                             </Router>
                           </ProjectProvider>
                         </TaskProvider>
                       </ChatProvider>
-                    </TimeTrackingProvider>
-                  </WorkspaceProvider>
-                </AIProvider>
+                    </AIProvider>
+                  </TimeTrackingProvider>
+                </WorkspaceProvider>
               </IntegrationProvider>
             </NotificationProvider>
           </UserProvider>
-                    </ChatProvider>
-                  </TimeTrackingProvider>
-                </WorkspaceProvider>  
-              </AIProvider>
-            </IntegrationProvider>
-          </NotificationProvider>
         </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
