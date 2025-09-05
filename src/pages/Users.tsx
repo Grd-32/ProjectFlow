@@ -207,6 +207,12 @@ const Users = () => {
                 <th className="text-left py-3 px-6 text-sm font-semibold text-gray-900 dark:text-white">Status</th>
                 <th className="text-left py-3 px-6 text-sm font-semibold text-gray-900 dark:text-white">Last Login</th>
                 {hasPermission('manage_users') && (
+                    <button
+                      onClick={() => handleEditUser(user.id)}
+                      className="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </button>
                   <th className="text-left py-3 px-6 text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
                 )}
               </tr>

@@ -21,10 +21,16 @@ interface KanbanColumn {
   limit?: number;
 }
 
-const KanbanBoard = () => {
+interface KanbanBoardProps {
+  filteredTasks?: any[];
+}
+
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ filteredTasks }) => {
   const { tasks, updateTask } = useTask();
   const { addNotification } = useNotification();
   const [draggedTask, setDraggedTask] = useState<string | null>(null);
+
+  const displayTasks = filteredTasks || tasks;
 
   const columns: KanbanColumn[] = [
     { id: 'pending', title: 'To Do', status: 'Pending', color: 'bg-gray-100 dark:bg-gray-700', limit: 10 },
@@ -34,7 +40,7 @@ const KanbanBoard = () => {
   ];
 
   const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => task.status === status);
+    return displayTasks.filter(task => task.status === status);
   };
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {

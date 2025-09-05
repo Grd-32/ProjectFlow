@@ -20,6 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </ResponsiveLayout>
       <MobileNavigation />
+      <VoiceCommands />
     </>
   );
 };

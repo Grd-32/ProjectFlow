@@ -13,7 +13,6 @@ import { IntegrationProvider } from './contexts/IntegrationContext';
 import { AIProvider } from './contexts/AIContext';
 import Layout from './components/Layout';
 import OfflineMode from './components/OfflineMode';
-import VoiceCommands from './components/VoiceCommands';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -82,7 +81,6 @@ function App() {
                                   <Route path="/settings" element={<Settings />} />
                                 </Routes>
                                 <OfflineMode />
-                                <VoiceCommands />
                                 <PWAInstallPrompt />
                               </Layout>
                             </Router>

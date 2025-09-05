@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTask } from '../contexts/TaskContext';
 import { useUser } from '../contexts/UserContext';
 import { useNotification } from '../contexts/NotificationContext';
@@ -28,6 +29,7 @@ interface TaskTableProps {
 }
 
 const TaskTable: React.FC<TaskTableProps> = ({ onEditTask, filteredTasks }) => {
+  const navigate = useNavigate();
   const { tasks, deleteTask, updateTask } = useTask();
   const { hasPermission } = useUser();
   const { addNotification } = useNotification();
@@ -70,19 +72,22 @@ const TaskTable: React.FC<TaskTableProps> = ({ onEditTask, filteredTasks }) => {
   const handleDeleteTask = (taskId: string) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
       deleteTask(taskId);
+      addNotification({
+        type: 'warning',
+        title: 'Task Deleted',
+        message: 'Task has been deleted successfully',
+        userId: '1',
+        relatedEntity: {
+          type: 'task',
+          id: taskId,
+          name: 'Deleted Task'
+        }
+      });
     }
     setActiveDropdown(null);
   };
 
   const handleDuplicateTask = (task: any) => {
-    const duplicatedTask = {
-      ...task,
-      name: `${task.name} (Copy)`,
-      status: 'Pending' as const,
-      comments: [],
-      attachments: []
-    };
-    // This would normally call addTask, but we'll simulate with updateTask
     addNotification({
       type: 'info',
       title: 'Task Duplicated',

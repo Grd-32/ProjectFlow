@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTask } from '../contexts/TaskContext';
 import { useUser } from '../contexts/UserContext';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import { useTimeTracking } from '../contexts/TimeTrackingContext';
 import TaskTable from '../components/TaskTable';
 import TaskModal from '../components/TaskModal';
@@ -13,6 +14,7 @@ import { Plus, Search, Filter, List, Columns, Clock, BarChart3 } from 'lucide-re
 const Tasks = () => {
   const { hasPermission } = useUser();
   const { tasks } = useTask();
+  const { currentWorkspace } = useWorkspace();
   const { activeTimers } = useTimeTracking();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<string | null>(null);
@@ -37,7 +39,11 @@ const Tasks = () => {
     setEditingTask(null);
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const workspaceFilteredTasks = currentWorkspace 
+    ? tasks.filter(task => currentWorkspace.projects.includes(task.projectId))
+    : tasks;
+
+  const filteredTasks = workspaceFilteredTasks.filter(task => {
     const matchesSearch = task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.project.toLowerCase().includes(searchTerm.toLowerCase());
@@ -173,7 +179,7 @@ const Tasks = () => {
         <TaskTable onEditTask={handleEditTask} filteredTasks={filteredTasks} />
       )}
       {viewMode === 'kanban' && (
-        <KanbanBoard />
+        <KanbanBoard filteredTasks={filteredTasks} />
       )}
       {viewMode === 'time' && (
         <div className="flex-1 overflow-auto p-6">
