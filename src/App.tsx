@@ -99,6 +99,11 @@ function App() {
             </NotificationProvider>
           </UserProvider>
                     </ChatProvider>
+                  </TimeTrackingProvider>
+                </WorkspaceProvider>  
+              </AIProvider>
+            </IntegrationProvider>
+          </NotificationProvider>
         </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
