@@ -213,8 +213,9 @@ const Users = () => {
                     >
                       <Edit3 className="h-4 w-4" />
                     </button>
-                  <th className="text-left py-3 px-6 text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+              
                 )}
+                <th className="text-left py-3 px-6 text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
               </tr>
             </thead>
             <tbody>
