@@ -63,7 +63,13 @@ function App() {
                 <WorkspaceProvider>
                   <TimeTrackingProvider>
                     <ChatProvider>
-                      <UserProvider>
+          <UserProvider>
+            <NotificationProvider>
+              <IntegrationProvider>
+                <AIProvider>
+                  <WorkspaceProvider>
+                    <TimeTrackingProvider>
+                      <ChatProvider>
                         <TaskProvider>
                           <ProjectProvider>
                             <Router>
@@ -83,21 +89,15 @@ function App() {
                                 </Routes>
                               </Layout>
                             </Router>
-                            <OfflineMode isOnline={isOnline} />
-                            <VoiceCommands 
-                              isEnabled={voiceEnabled} 
-                              onToggle={() => setVoiceEnabled(!voiceEnabled)} 
-                            />
-                            <PWAInstallPrompt />
                           </ProjectProvider>
                         </TaskProvider>
-                      </UserProvider>
-                    </ChatProvider>
-                  </TimeTrackingProvider>
-                </WorkspaceProvider>
-              </AIProvider>
-            </IntegrationProvider>
-          </NotificationProvider>
+                      </ChatProvider>
+                    </TimeTrackingProvider>
+                  </WorkspaceProvider>
+                </AIProvider>
+              </IntegrationProvider>
+            </NotificationProvider>
+          </UserProvider>
         </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
