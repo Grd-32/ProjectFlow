@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
 import { useTask } from '../contexts/TaskContext';
 import { useProject } from '../contexts/ProjectContext';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import NotificationPanel from './NotificationPanel';
 import UserProfile from './UserProfile';
 import ChatPanel from './ChatPanel';
@@ -30,10 +31,12 @@ import {
 
 const TopNavigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, setTheme, isDark } = useTheme();
   const { currentUser } = useUser();
   const { tasks, goals, documents } = useTask();
   const { projects } = useProject();
+  const { currentWorkspace } = useWorkspace();
   const [isMobile, setIsMobile] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,6 +56,7 @@ const TopNavigation = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   const getPageTitle = () => {
+    const baseTitle = (() => {
     switch (location.pathname) {
       case '/':
         return 'Dashboard';
@@ -72,8 +76,14 @@ const TopNavigation = () => {
         return 'Reports';
       case '/settings':
         return 'Settings';
+      case '/project-management':
+        return 'Project Management';
       default:
         return 'ProjectFlow';
+    }
+    })();
+    
+    return currentWorkspace ? `${baseTitle} - ${currentWorkspace.name}` : baseTitle;
     }
   };
 
@@ -188,8 +198,11 @@ const TopNavigation = () => {
                       onClick={() => {
                         setShowSearchResults(false);
                         setSearchTerm('');
-                        // Navigate to result
-                        window.location.href = result.url;
+                        setShowSearchResults(false);
+                        setSearchTerm('');
+                        // Use React Router navigation instead of window.location
+                        window.history.pushState({}, '', result.url);
+                        window.dispatchEvent(new PopStateEvent('popstate'));
                       }}
                     >
                       <div className="flex items-center space-x-3">

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useTask } from '../contexts/TaskContext';
 import { useProject } from '../contexts/ProjectContext';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import { 
   LayoutDashboard, 
   CheckSquare, 
@@ -24,6 +25,7 @@ const Sidebar = () => {
   const { hasPermission } = useUser();
   const { tasks } = useTask();
   const { projects } = useProject();
+  const { workspaces, currentWorkspace, setCurrentWorkspace } = useWorkspace();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -109,13 +111,6 @@ const Sidebar = () => {
     },
   ];
 
-  const workspaceItems = [
-    { emoji: '🧠', label: 'My Focus', count: tasks.filter(t => t.assignee.id === '1' && t.status !== 'Complete').length },
-    { emoji: '🚀', label: 'Website Redesign', count: tasks.filter(t => t.projectId === '1').length },
-    { emoji: '📱', label: 'Mobile App', count: tasks.filter(t => t.projectId === '2').length },
-    { emoji: '💡', label: 'Ideas', count: 15 },
-  ];
-
   return (
     <div className="w-full h-full flex flex-col">
       {/* Header */}
@@ -164,25 +159,42 @@ const Sidebar = () => {
             <h3 className={`${isMobile ? 'text-xs' : 'text-xs'} font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider`}>
               Workspaces
             </h3>
-            <button className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+            <button 
+              onClick={() => {
+                // This would open a workspace creation modal in a real implementation
+                console.log('Create new workspace');
+              }}
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+            >
               <Plus className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
             </button>
           </div>
           <div className="space-y-1 mt-2">
-            {workspaceItems.map((item, index) => (
+            {workspaces.map((workspace) => {
+              const workspaceTasks = tasks.filter(t => 
+                workspace.projects.includes(t.projectId)
+              ).filter(t => t.status !== 'Complete').length;
+              
+              return (
               <button
-                key={index}
-                className={`w-full group flex items-center justify-between ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-150`}
+                key={workspace.id}
+                onClick={() => setCurrentWorkspace(workspace)}
+                className={`w-full group flex items-center justify-between ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} text-sm rounded-lg transition-colors duration-150 ${
+                  currentWorkspace?.id === workspace.id
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                }`}
               >
                 <div className="flex items-center">
-                  <span className={`${isMobile ? 'mr-2 text-sm' : 'mr-3 text-base'}`}>{item.emoji}</span>
-                  <span className={isMobile ? 'text-xs' : ''}>{item.label}</span>
+                  <span className={`${isMobile ? 'mr-2 text-sm' : 'mr-3 text-base'}`}>{workspace.icon}</span>
+                  <span className={isMobile ? 'text-xs' : ''}>{workspace.name}</span>
                 </div>
                 <span className={`text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 ${isMobile ? 'px-1 py-0.5' : 'px-2 py-1'} rounded-full`}>
-                  {item.count}
+                  {workspaceTasks}
                 </span>
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useProject } from '../contexts/ProjectContext';
 import { useUser } from '../contexts/UserContext';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { 
   Plus, 
@@ -27,6 +28,7 @@ import PublicProjectShare from '../components/PublicProjectShare';
 const Projects = () => {
   const { projects } = useProject();
   const { hasPermission } = useUser();
+  const { currentWorkspace } = useWorkspace();
   const { addNotification } = useNotification();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<string | null>(null);
@@ -75,7 +77,11 @@ const Projects = () => {
     setActiveDropdown(null);
   };
 
-  const filteredProjects = projects.filter(project => {
+  const workspaceFilteredProjects = currentWorkspace 
+    ? projects.filter(project => currentWorkspace.projects.includes(project.id))
+    : projects;
+
+  const filteredProjects = workspaceFilteredProjects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || project.status === statusFilter;
@@ -117,8 +123,8 @@ const Projects = () => {
 
   const totalBudget = projects.reduce((sum, p) => sum + p.budget, 0);
   const totalSpent = projects.reduce((sum, p) => sum + p.spent, 0);
-  const activeProjects = projects.filter(p => p.status === 'Active').length;
-  const completedProjects = projects.filter(p => p.status === 'Completed').length;
+  const activeProjects = workspaceFilteredProjects.filter(p => p.status === 'Active').length;
+  const completedProjects = workspaceFilteredProjects.filter(p => p.status === 'Completed').length;
 
   return (
     <div className="p-6 h-full overflow-auto">

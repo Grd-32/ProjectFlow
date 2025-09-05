@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTask } from '../contexts/TaskContext';
 import { useUser } from '../contexts/UserContext';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import { 
   CheckSquare, 
   Target, 
@@ -14,8 +16,10 @@ import {
 import { format } from 'date-fns';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { tasks, goals } = useTask();
   const { hasPermission } = useUser();
+  const { currentWorkspace } = useWorkspace();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -34,10 +38,12 @@ const Dashboard = () => {
   const activeGoals = goals.filter(goal => goal.status === 'Active').length;
 
   const recentTasks = tasks
+    .filter(task => !currentWorkspace || currentWorkspace.projects.includes(task.projectId))
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 5);
 
   const upcomingDeadlines = tasks
+    .filter(task => !currentWorkspace || currentWorkspace.projects.includes(task.projectId))
     .filter(task => task.status !== 'Complete')
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 5);
@@ -79,7 +85,7 @@ const Dashboard = () => {
       <div>
         <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900 dark:text-white`}>Dashboard</h1>
         <p className={`text-gray-600 dark:text-gray-400 mt-1 ${isMobile ? 'text-sm' : ''}`}>
-          Welcome back! Here's what's happening with your projects.
+          Welcome back! Here's what's happening in {currentWorkspace?.name || 'your workspace'}.
         </p>
       </div>
 

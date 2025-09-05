@@ -194,6 +194,9 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       updatedAt: new Date().toISOString()
     };
     setWorkspaces(prev => [...prev, newWorkspace]);
+    
+    // Auto-switch to new workspace
+    setCurrentWorkspace(newWorkspace);
   };
 
   const updateWorkspace = (id: string, updates: Partial<Workspace>) => {
@@ -202,10 +205,21 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
         ? { ...workspace, ...updates, updatedAt: new Date().toISOString() }
         : workspace
     ));
+    
+    // Update current workspace if it's the one being updated
+    if (currentWorkspace?.id === id) {
+      setCurrentWorkspace(prev => prev ? { ...prev, ...updates, updatedAt: new Date().toISOString() } : null);
+    }
   };
 
   const deleteWorkspace = (id: string) => {
     setWorkspaces(prev => prev.filter(workspace => workspace.id !== id));
+    
+    // Switch to first available workspace if current one is deleted
+    if (currentWorkspace?.id === id) {
+      const remainingWorkspaces = workspaces.filter(w => w.id !== id);
+      setCurrentWorkspace(remainingWorkspaces.length > 0 ? remainingWorkspaces[0] : null);
+    }
   };
 
   const addProjectTemplate = (templateData: Omit<ProjectTemplate, 'id' | 'createdAt'>) => {

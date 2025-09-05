@@ -266,7 +266,7 @@ const VoiceCommands: React.FC<VoiceCommandsProps> = ({ isEnabled, onToggle }) =>
       }`}>
         <div className="flex items-center space-x-3">
           <button
-            onClick={onToggle}
+            onClick={toggleVoiceCommands}
             className={`p-2 rounded-lg transition-colors ${
               isEnabled 
                 ? isListening

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../contexts/NotificationContext';
 import { 
   Bell, 
@@ -15,6 +16,7 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 
 const NotificationPanel = () => {
+  const navigate = useNavigate();
   const { 
     notifications, 
     unreadCount, 
@@ -24,6 +26,15 @@ const NotificationPanel = () => {
     clearAllNotifications 
   } = useNotification();
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleNotificationClick = (notification: any) => {
+    if (notification.actionUrl) {
+      navigate(notification.actionUrl);
+    }
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -118,9 +129,10 @@ const NotificationPanel = () => {
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                      className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
                         !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                       }`}
+                      onClick={() => handleNotificationClick(notification)}
                     >
                       <div className="flex items-start space-x-3">
                         <div className="flex-shrink-0 mt-1">
