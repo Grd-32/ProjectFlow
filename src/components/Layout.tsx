@@ -13,18 +13,18 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, voiceEnabled, onToggleVoice }) => {
   return (
-    <>
+    <div className="h-screen flex flex-col overflow-hidden">
       <ResponsiveLayout
         sidebar={<Sidebar />}
         topNav={<TopNavigation />}
       >
-        <div className="pb-16 md:pb-0">
+        <div className="flex-1 overflow-auto pb-16 md:pb-0">
           {children}
         </div>
       </ResponsiveLayout>
       <MobileNavigation />
       <VoiceCommands isEnabled={voiceEnabled} onToggle={onToggleVoice} />
-    </>
+    </div>
   );
 };
 

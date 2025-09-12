@@ -6,6 +6,7 @@ import { UserProvider } from './contexts/UserContext';
 import { TaskProvider } from './contexts/TaskContext';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import { TimeTrackingProvider } from './contexts/TimeTrackingContext';
 import { ChatProvider } from './contexts/ChatContext';
@@ -57,41 +58,43 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <UserProvider>
-            <NotificationProvider>
-              <IntegrationProvider>
-                <WorkspaceProvider>
-                  <TimeTrackingProvider>
-                    <AIProvider>
-                      <ChatProvider>
-                        <TaskProvider>
-                          <ProjectProvider>
-                            <Router>
-                              <Layout voiceEnabled={voiceEnabled} onToggleVoice={() => setVoiceEnabled(!voiceEnabled)}>
-                                <Routes>
-                                  <Route path="/" element={<Dashboard />} />
-                                  <Route path="/tasks" element={<Tasks />} />
-                                  <Route path="/projects" element={<Projects />} />
-                                  <Route path="/goals" element={<Goals />} />
-                                  <Route path="/docs" element={<Docs />} />
-                                  <Route path="/calendar" element={<Calendar />} />
-                                  <Route path="/automations" element={<Automations />} />
-                                  <Route path="/users" element={<Users />} />
-                                  <Route path="/project-management" element={<ProjectManagement />} />
-                                  <Route path="/reports" element={<Reports />} />
-                                  <Route path="/settings" element={<Settings />} />
-                                </Routes>
-                                <OfflineMode />
-                                <PWAInstallPrompt />
-                              </Layout>
-                            </Router>
-                          </ProjectProvider>
-                        </TaskProvider>
-                      </ChatProvider>
-                    </AIProvider>
-                  </TimeTrackingProvider>
-                </WorkspaceProvider>
-              </IntegrationProvider>
-            </NotificationProvider>
+            <SettingsProvider>
+              <NotificationProvider>
+                <IntegrationProvider>
+                  <WorkspaceProvider>
+                    <TimeTrackingProvider>
+                      <AIProvider>
+                        <ChatProvider>
+                          <TaskProvider>
+                            <ProjectProvider>
+                              <Router>
+                                <Layout voiceEnabled={voiceEnabled} onToggleVoice={() => setVoiceEnabled(!voiceEnabled)}>
+                                  <Routes>
+                                    <Route path="/" element={<Dashboard />} />
+                                    <Route path="/tasks" element={<Tasks />} />
+                                    <Route path="/projects" element={<Projects />} />
+                                    <Route path="/goals" element={<Goals />} />
+                                    <Route path="/docs" element={<Docs />} />
+                                    <Route path="/calendar" element={<Calendar />} />
+                                    <Route path="/automations" element={<Automations />} />
+                                    <Route path="/users" element={<Users />} />
+                                    <Route path="/project-management" element={<ProjectManagement />} />
+                                    <Route path="/reports" element={<Reports />} />
+                                    <Route path="/settings" element={<Settings />} />
+                                  </Routes>
+                                  <OfflineMode />
+                                  <PWAInstallPrompt />
+                                </Layout>
+                              </Router>
+                            </ProjectProvider>
+                          </TaskProvider>
+                        </ChatProvider>
+                      </AIProvider>
+                    </TimeTrackingProvider>
+                  </WorkspaceProvider>
+                </IntegrationProvider>
+              </NotificationProvider>
+            </SettingsProvider>
           </UserProvider>
         </LanguageProvider>
       </ThemeProvider>

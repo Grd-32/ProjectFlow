@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Responsive layout improvements */
+.compact-mode {
+  --spacing-unit: 0.75rem;
+}
+
+.compact-mode .p-6 {
+  padding: var(--spacing-unit);
+}
+
+.compact-mode .space-y-6 > * + * {
+  margin-top: var(--spacing-unit);
+}
+
+/* Animation controls */
+* {
+  transition-duration: var(--animation-duration, 0.15s);
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .settings-content {
+    padding: 1rem;
+  }
+  
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Ensure content is scrollable */
+.settings-main {
+  height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+/* Better responsive tables */
+@media (max-width: 640px) {
+  .responsive-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}

@@ -62,14 +62,14 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ sidebar, topNav, ch
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Top Navigation */}
         <div className={`${isMobile ? 'pl-16' : ''}`}>
           {topNav}
         </div>
         
         {/* Page Content */}
-        <main className={`flex-1 overflow-hidden ${isMobile ? 'px-4' : ''}`}>
+        <main className={`flex-1 overflow-auto ${isMobile ? 'px-4' : ''}`}>
           {children}
         </main>
       </div>
