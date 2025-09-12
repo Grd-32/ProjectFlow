@@ -66,7 +66,7 @@ function App() {
                         <TaskProvider>
                           <ProjectProvider>
                             <Router>
-                              <Layout>
+                              <Layout voiceEnabled={voiceEnabled} onToggleVoice={() => setVoiceEnabled(!voiceEnabled)}>
                                 <Routes>
                                   <Route path="/" element={<Dashboard />} />
                                   <Route path="/tasks" element={<Tasks />} />

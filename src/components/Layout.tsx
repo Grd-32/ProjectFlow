@@ -7,9 +7,11 @@ import VoiceCommands from './VoiceCommands';
 
 interface LayoutProps {
   children: React.ReactNode;
+  voiceEnabled: boolean;
+  onToggleVoice: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({ children, voiceEnabled, onToggleVoice }) => {
   return (
     <>
       <ResponsiveLayout
@@ -21,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </ResponsiveLayout>
       <MobileNavigation />
-      <VoiceCommands />
+      <VoiceCommands isEnabled={voiceEnabled} onToggle={onToggleVoice} />
     </>
   );
 };
