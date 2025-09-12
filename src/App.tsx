@@ -12,6 +12,7 @@ import { TimeTrackingProvider } from './contexts/TimeTrackingContext';
 import { ChatProvider } from './contexts/ChatContext';
 import { IntegrationProvider } from './contexts/IntegrationContext';
 import { AIProvider } from './contexts/AIContext';
+import { useRealTimeSync } from './hooks/useRealTimeSync';
 import Layout from './components/Layout';
 import OfflineMode from './components/OfflineMode';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -29,6 +30,12 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import ProjectManagement from './pages/ProjectManagement';
 import { useState, useEffect } from 'react';
+
+// Component to initialize real-time sync
+const SyncInitializer = () => {
+  useRealTimeSync();
+  return null;
+};
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -69,6 +76,7 @@ function App() {
                             <ProjectProvider>
                               <Router>
                                 <Layout voiceEnabled={voiceEnabled} onToggleVoice={() => setVoiceEnabled(!voiceEnabled)}>
+                                  <SyncInitializer />
                                   <Routes>
                                     <Route path="/" element={<Dashboard />} />
                                     <Route path="/tasks" element={<Tasks />} />
