@@ -4,6 +4,7 @@ import { useUser } from '../contexts/UserContext';
 import { useTask } from '../contexts/TaskContext';
 import { useProject } from '../contexts/ProjectContext';
 import { useWorkspace } from '../contexts/WorkspaceContext';
+import WorkspaceManager from './WorkspaceManager';
 import { 
   LayoutDashboard, 
   CheckSquare, 
@@ -17,7 +18,8 @@ import {
   Settings,
   ChevronRight,
   Plus,
-  Briefcase
+  Briefcase,
+  Settings as SettingsIcon
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -27,6 +29,7 @@ const Sidebar = () => {
   const { projects } = useProject();
   const { workspaces, currentWorkspace, setCurrentWorkspace } = useWorkspace();
   const [isMobile, setIsMobile] = useState(false);
+  const [showWorkspaceManager, setShowWorkspaceManager] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -159,11 +162,64 @@ const Sidebar = () => {
             <h3 className={`${isMobile ? 'text-xs' : 'text-xs'} font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider`}>
               Workspaces
             </h3>
-            <button 
-              onClick={() => {
-                // This would open a workspace creation modal in a real implementation
-                console.log('Create new workspace');
-              }}
+            <div className="flex items-center space-x-1">
+              <button 
+                onClick={() => setShowWorkspaceManager(true)}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                title="Manage workspaces"
+              >
+                <SettingsIcon className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+              </button>
+              <button 
+                onClick={() => setShowWorkspaceManager(true)}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                title="Create new workspace"
+              >
+                <Plus className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+              </button>
+            </div>
+          </div>
+          <div className="space-y-1 mt-2">
+            {workspaces.map((workspace) => {
+              const workspaceTasks = tasks.filter(t => 
+                workspace.projects.includes(t.projectId)
+              ).filter(t => t.status !== 'Complete').length;
+              
+              return (
+                <button
+                  key={workspace.id}
+                  onClick={() => setCurrentWorkspace(workspace)}
+                  className={`w-full group flex items-center justify-between ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} text-sm rounded-lg transition-colors duration-150 ${
+                    currentWorkspace?.id === workspace.id
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <span className={`${isMobile ? 'mr-2 text-sm' : 'mr-3 text-base'}`}>{workspace.icon}</span>
+                    <span className={isMobile ? 'text-xs' : ''}>{workspace.name}</span>
+                  </div>
+                  <span className={`text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 ${isMobile ? 'px-1 py-0.5' : 'px-2 py-1'} rounded-full`}>
+                    {workspaceTasks}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      
+      {showWorkspaceManager && (
+        <WorkspaceManager 
+          isOpen={showWorkspaceManager} 
+          onClose={() => setShowWorkspaceManager(false)} 
+        />
+      )}
+    </div>
+  );
+};
+
+export default Sidebar;
               className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
             >
               <Plus className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />

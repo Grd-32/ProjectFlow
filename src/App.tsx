@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './components/MultiLanguageSupport';
 import { UserProvider } from './contexts/UserContext';
+import { TenantProvider } from './contexts/TenantContext';
 import { TaskProvider } from './contexts/TaskContext';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -13,6 +14,7 @@ import { ChatProvider } from './contexts/ChatContext';
 import { IntegrationProvider } from './contexts/IntegrationContext';
 import { AIProvider } from './contexts/AIContext';
 import { useRealTimeSync } from './hooks/useRealTimeSync';
+import { useWorkspaceSync, useTenantMonitoring } from './hooks/useRealTimeSync';
 import Layout from './components/Layout';
 import OfflineMode from './components/OfflineMode';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -34,6 +36,8 @@ import { useState, useEffect } from 'react';
 // Component to initialize real-time sync
 const SyncInitializer = () => {
   useRealTimeSync();
+  useWorkspaceSync();
+  useTenantMonitoring();
   return null;
 };
 
@@ -66,6 +70,7 @@ function App() {
         <LanguageProvider>
           <UserProvider>
             <NotificationProvider>
+              <TenantProvider>
               <SettingsProvider>
                 <IntegrationProvider>
                   <WorkspaceProvider>
@@ -100,8 +105,9 @@ function App() {
                       </AIProvider>
                     </TimeTrackingProvider>
                   </WorkspaceProvider>
-                </IntegrationProvider>
-              </SettingsProvider>
+                  </IntegrationProvider>
+                </SettingsProvider>
+              </TenantProvider>
             </NotificationProvider>
           </UserProvider>
         </LanguageProvider>
