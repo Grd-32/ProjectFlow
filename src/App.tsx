@@ -65,8 +65,8 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <UserProvider>
-            <SettingsProvider>
-              <NotificationProvider>
+            <NotificationProvider>
+              <SettingsProvider>
                 <IntegrationProvider>
                   <WorkspaceProvider>
                     <TimeTrackingProvider>
@@ -101,8 +101,8 @@ function App() {
                     </TimeTrackingProvider>
                   </WorkspaceProvider>
                 </IntegrationProvider>
-              </NotificationProvider>
-            </SettingsProvider>
+              </SettingsProvider>
+            </NotificationProvider>
           </UserProvider>
         </LanguageProvider>
       </ThemeProvider>
