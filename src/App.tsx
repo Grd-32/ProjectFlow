@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './components/MultiLanguageSupport';
 import { UserProvider } from './contexts/UserContext';
-import { TenantProvider } from './contexts/TenantContext';
 import { TaskProvider } from './contexts/TaskContext';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -14,8 +13,8 @@ import { ChatProvider } from './contexts/ChatContext';
 import { IntegrationProvider } from './contexts/IntegrationContext';
 import { AIProvider } from './contexts/AIContext';
 import { useRealTimeSync } from './hooks/useRealTimeSync';
-import { useWorkspaceSync, useTenantMonitoring } from './hooks/useRealTimeSync';
 import Layout from './components/Layout';
+import MultiTenantAuth from './components/MultiTenantAuth';
 import OfflineMode from './components/OfflineMode';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -36,8 +35,6 @@ import { useState, useEffect } from 'react';
 // Component to initialize real-time sync
 const SyncInitializer = () => {
   useRealTimeSync();
-  useWorkspaceSync();
-  useTenantMonitoring();
   return null;
 };
 
@@ -45,6 +42,7 @@ function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -54,7 +52,13 @@ function App() {
     window.addEventListener('offline', handleOffline);
 
     // Simulate app initialization
-    setTimeout(() => setIsLoading(false), 2000);
+    setTimeout(() => {
+      setIsLoading(false);
+      // Check if user is already authenticated
+      const authToken = localStorage.getItem('auth-token');
+      setIsAuthenticated(!!authToken);
+    }, 2000);
+    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -64,13 +68,34 @@ function App() {
   if (isLoading) {
     return <LoadingSpinner fullScreen text="Initializing ProjectFlow..." size="lg" />;
   }
+
+  if (!isAuthenticated) {
+    return (
+      <ErrorBoundary>
+        <ThemeProvider>
+          <LanguageProvider>
+            <UserProvider>
+              <NotificationProvider>
+                <TenantProvider>
+                  <MultiTenantAuth onAuthSuccess={() => {
+                    localStorage.setItem('auth-token', 'demo-token');
+                    setIsAuthenticated(true);
+                  }} />
+                </TenantProvider>
+              </NotificationProvider>
+            </UserProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <LanguageProvider>
           <UserProvider>
             <NotificationProvider>
-              <TenantProvider>
               <SettingsProvider>
                 <IntegrationProvider>
                   <WorkspaceProvider>
@@ -105,9 +130,8 @@ function App() {
                       </AIProvider>
                     </TimeTrackingProvider>
                   </WorkspaceProvider>
-                  </IntegrationProvider>
-                </SettingsProvider>
-              </TenantProvider>
+                </IntegrationProvider>
+              </SettingsProvider>
             </NotificationProvider>
           </UserProvider>
         </LanguageProvider>
