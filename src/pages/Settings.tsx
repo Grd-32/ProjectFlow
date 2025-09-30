@@ -1,3 +1,54 @@
+  Users, 
+  Building, 
+  CreditCard, 
+  FileText, 
+  Calendar, 
+  Clock, 
+  Trash2, 
+  Plus, 
+  Edit3,
+  X,
+  Check,
+  Copy,
+  ExternalLink,
+  Loader,
+  ToggleLeft,
+  ToggleRight,
+  Volume2,
+  VolumeX,
+  Mic,
+  MicOff,
+  Crown,
+  Star,
+  Activity,
+  BarChart3,
+  TrendingUp,
+  DollarSign,
+  Target,
+  MessageSquare,
+  Image,
+  Video,
+  Archive,
+  Share2,
+  Link2,
+  QrCode,
+  Wifi,
+  WifiOff,
+  Server,
+  HardDrive,
+  Cpu,
+  MemoryStick,
+  Network,
+  Router,
+  Fingerprint,
+  Tablet,
+  Chrome,
+  Firefox,
+  Safari,
+  Edge,
+  Phone,
+  MapPin
+} from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useUser } from '../contexts/UserContext';
@@ -1112,79 +1163,45 @@ const Settings = () => {
                 Cancel
               </button>
               <button
+import { 
                 onClick={() => {
-                  resetSettings();
-                  setShowResetConfirm(false);
-                }}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+  User, 
               >
-                Reset Settings
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'profile':
-        return renderProfileSettings();
-      case 'notifications':
-        return renderNotificationSettings();
-      case 'appearance':
-        return renderAppearanceSettings();
-      case 'integrations':
-        return renderIntegrationSettings();
-      case 'security':
-        return renderSecuritySettings();
-      case 'data':
-        return renderDataSettings();
-      case 'organization':
-        return renderOrganizationSettings();
-      case 'audit':
-        return <SecurityAuditLog />;
-      case 'advanced':
-        return renderAdvancedSettings();
-      default:
-        return renderProfileSettings();
-    }
-  };
-
-  return (
-    <div className="h-full flex overflow-hidden">
-      {/* Settings Sidebar */}
-      <div className="w-64 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Settings</h2>
-          <nav className="space-y-1">
-            {availableSections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  activeSection === section.id
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
-              >
+  Shield, 
                 <section.icon className="h-4 w-4" />
+  Bell, 
                 <span>{section.label}</span>
+  Palette, 
               </button>
+  Globe, 
             ))}
+  Zap, 
           </nav>
+  Database, 
         </div>
+  Key, 
       </div>
+  Mail, 
 
+  Smartphone, 
       {/* Settings Content */}
+  Monitor, 
       <div className="flex-1 overflow-y-auto">
+  Lock, 
         <div className="p-6 max-w-4xl">
+  Eye, 
           {renderContent()}
+  Download, 
         </div>
+  Upload, 
       </div>
+  RefreshCw, 
     </div>
+  Save, 
   );
+  AlertTriangle, 
 };
+  CheckCircle, 
 
+  Settings as SettingsIcon, 
 export default Settings;
