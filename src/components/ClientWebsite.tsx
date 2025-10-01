@@ -512,7 +512,7 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
               
               <div className="flex space-x-4">
                 <button
-                  {/* onClick={() => navigate('/demo')} */}
+                  
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center transform hover:scale-105"
                 >
                   Try Interactive Demo
