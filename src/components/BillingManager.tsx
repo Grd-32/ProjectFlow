@@ -504,4 +504,4 @@ const BillingManager = () => {
   );
 };
 
-export BillingManager;
+export default BillingManager;
