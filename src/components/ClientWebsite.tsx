@@ -282,7 +282,7 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
               <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
               <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Testimonials</a>
               <button
-                onClick={() => navigate('#contact')}
+                {/* onClick={() => navigate('#contact')} */}
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 Contact
@@ -1009,7 +1009,7 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
                 <li><a href="#status" className="hover:text-white transition-colors">System Status</a></li>
                 <li>
                   <button 
-                    onClick={() => navigate('/contact')} 
+                    {/* onClick={() => navigate('/contact')}  */}
                     className="hover:text-white transition-colors">Contact</button></li>
               </ul>
             </div>
