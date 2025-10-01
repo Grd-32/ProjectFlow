@@ -282,7 +282,7 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
               <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
               <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Testimonials</a>
               <button
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate('#contact')}
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 Contact
@@ -324,10 +324,10 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
               <a href="#demo" className="block py-2 text-gray-600 dark:text-gray-300">Demo</a>
               <a href="#pricing" className="block py-2 text-gray-600 dark:text-gray-300">Pricing</a>
               <a href="#testimonials" className="block py-2 text-gray-600 dark:text-gray-300">Testimonials</a>
-              <button
+              {/* <button
                 onClick={() => navigate('/contact')}
                 className="block w-full text-left py-2 text-gray-600 dark:text-gray-300"
-              >
+              > */}
                 Contact
               </button>
               <button
@@ -512,7 +512,7 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
               
               <div className="flex space-x-4">
                 <button
-                  onClick={() => navigate('/demo')}
+                  {/* onClick={() => navigate('/demo')} */}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center transform hover:scale-105"
                 >
                   Try Interactive Demo
@@ -1007,7 +1007,10 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
                 <li><a href="#docs" className="hover:text-white transition-colors">Documentation</a></li>
                 <li><a href="#community" className="hover:text-white transition-colors">Community</a></li>
                 <li><a href="#status" className="hover:text-white transition-colors">System Status</a></li>
-                <li><button onClick={() => navigate('/contact')} className="hover:text-white transition-colors">Contact</button></li>
+                <li>
+                  <button 
+                    onClick={() => navigate('/contact')} 
+                    className="hover:text-white transition-colors">Contact</button></li>
               </ul>
             </div>
           </div>
