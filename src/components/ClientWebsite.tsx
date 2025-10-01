@@ -324,10 +324,10 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
               <a href="#demo" className="block py-2 text-gray-600 dark:text-gray-300">Demo</a>
               <a href="#pricing" className="block py-2 text-gray-600 dark:text-gray-300">Pricing</a>
               <a href="#testimonials" className="block py-2 text-gray-600 dark:text-gray-300">Testimonials</a>
-              {/* <button
-                onClick={() => navigate('/contact')}
+              <button
+                
                 className="block w-full text-left py-2 text-gray-600 dark:text-gray-300"
-              > */}
+              >
                 Contact
               </button>
               <button
