@@ -14,7 +14,10 @@ import {
   Globe,
   Smartphone,
   Monitor,
-  Headphones,
+  Brain,
+  Workflow,
+  Database,
+  Lock,
   Award,
   TrendingUp,
   MessageSquare,
@@ -32,67 +35,32 @@ import {
   Github,
   Menu,
   X,
-  Brain,
-  Database,
-  Lock,
-  Workflow,
-  PieChart,
-  Activity,
-  Layers,
-  Briefcase,
-  Code,
-  Palette,
+  Sparkles,
   Rocket,
   Heart,
   Coffee,
   Lightbulb,
-  Sparkles
+  Send,
+  Download,
+  Upload,
+  Code,
+  Palette,
+  Layers,
+  Activity,
+  PieChart
 } from 'lucide-react';
 
-interface FeatureCard {
-  icon: React.ComponentType<any>;
-  title: string;
-  description: string;
-  features: string[];
-  color: string;
+interface ClientWebsiteProps {
+  onNavigateToApp: () => void;
 }
 
-interface PricingPlan {
-  name: string;
-  price: number;
-  period: string;
-  description: string;
-  features: string[];
-  popular?: boolean;
-  cta: string;
-  color: string;
-}
-
-interface Testimonial {
-  name: string;
-  role: string;
-  company: string;
-  content: string;
-  avatar: string;
-  rating: number;
-}
-
-interface DemoFeature {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<any>;
-  screenshot: string;
-  highlights: string[];
-}
-
-const LandingPage = () => {
+const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [showDemo, setShowDemo] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [currentDemoFeature, setCurrentDemoFeature] = useState(0);
+  const [currentFeature, setCurrentFeature] = useState(0);
   const [accessRequestForm, setAccessRequestForm] = useState({
     name: '',
     email: '',
@@ -105,120 +73,58 @@ const LandingPage = () => {
   const [showAccessRequest, setShowAccessRequest] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const features: FeatureCard[] = [
+  const features = [
+    {
+      icon: Brain,
+      title: 'AI-Powered Intelligence',
+      description: 'Advanced AI that learns from your team\'s patterns and provides intelligent insights',
+      features: ['Predictive Analytics', 'Smart Scheduling', 'Risk Detection', 'Performance Optimization'],
+      color: 'from-purple-500 to-pink-500',
+      demo: 'ai-insights'
+    },
     {
       icon: Target,
-      title: 'AI-Powered Project Management',
-      description: 'Intelligent project planning with predictive analytics and automated insights',
-      features: ['Smart Gantt Charts', 'AI Risk Detection', 'Predictive Timelines', 'Resource Optimization'],
-      color: 'from-blue-500 to-cyan-500'
+      title: 'Advanced Project Management',
+      description: 'Comprehensive project planning with Gantt charts, resource allocation, and milestone tracking',
+      features: ['Interactive Gantt Charts', 'Resource Planning', 'Budget Management', 'Milestone Tracking'],
+      color: 'from-blue-500 to-cyan-500',
+      demo: 'project-planning'
     },
     {
       icon: Users,
-      title: 'Advanced Team Collaboration',
-      description: 'Real-time collaboration tools that keep your team connected and productive',
+      title: 'Real-Time Collaboration',
+      description: 'Seamless team communication with integrated chat, video calls, and file sharing',
       features: ['Live Chat & Video', 'File Sharing', 'Team Workspaces', 'Activity Feeds'],
-      color: 'from-green-500 to-emerald-500'
+      color: 'from-green-500 to-emerald-500',
+      demo: 'collaboration'
     },
     {
       icon: BarChart3,
-      title: 'Comprehensive Analytics',
-      description: 'Deep insights and custom reporting for data-driven decision making',
+      title: 'Advanced Analytics',
+      description: 'Powerful insights and custom reporting for data-driven decision making',
       features: ['Custom Dashboards', 'Performance Metrics', 'Predictive Analytics', 'Export Tools'],
-      color: 'from-purple-500 to-pink-500'
+      color: 'from-orange-500 to-red-500',
+      demo: 'analytics'
     },
     {
-      icon: Zap,
-      title: 'Workflow Automation',
-      description: 'Automate repetitive tasks and streamline your processes',
-      features: ['Smart Triggers', 'Custom Workflows', 'Integration Hub', 'Auto-notifications'],
-      color: 'from-yellow-500 to-orange-500'
-    },
-    {
-      icon: Clock,
-      title: 'Time & Resource Tracking',
-      description: 'Comprehensive time tracking with billable hours and productivity insights',
-      features: ['Automatic Tracking', 'Billable Hours', 'Resource Planning', 'Productivity Reports'],
-      color: 'from-indigo-500 to-purple-500'
+      icon: Workflow,
+      title: 'Intelligent Automation',
+      description: 'Smart workflow automation that adapts to your team\'s working patterns',
+      features: ['Smart Triggers', 'Custom Workflows', 'AI Optimization', 'Integration Hub'],
+      color: 'from-yellow-500 to-orange-500',
+      demo: 'automation'
     },
     {
       icon: Shield,
       title: 'Enterprise Security',
-      description: 'Bank-level security with compliance and comprehensive audit trails',
+      description: 'Bank-level security with compliance, audit trails, and advanced access controls',
       features: ['SSO Integration', '2FA Security', 'Audit Logs', 'Data Encryption'],
-      color: 'from-red-500 to-pink-500'
+      color: 'from-red-500 to-pink-500',
+      demo: 'security'
     }
   ];
 
-  const pricingPlans: PricingPlan[] = [
-    {
-      name: 'Starter',
-      price: 9,
-      period: 'per user/month',
-      description: 'Perfect for small teams getting started with project management',
-      features: [
-        'Up to 10 users',
-        'Unlimited projects',
-        '10GB storage',
-        'Basic integrations',
-        'Email support',
-        'Mobile apps',
-        'Basic analytics',
-        'Task management'
-      ],
-      cta: 'Start Free Trial',
-      color: 'from-blue-500 to-cyan-500'
-    },
-    {
-      name: 'Professional',
-      price: 29,
-      period: 'per user/month',
-      description: 'Advanced features for growing teams and complex projects',
-      features: [
-        'Up to 50 users',
-        'Unlimited projects',
-        '100GB storage',
-        'Advanced integrations',
-        'Time tracking',
-        'Custom fields',
-        'Priority support',
-        'Advanced analytics',
-        'Workflow automation',
-        'Team workspaces',
-        'Custom reports',
-        'API access'
-      ],
-      popular: true,
-      cta: 'Start Free Trial',
-      color: 'from-purple-500 to-pink-500'
-    },
-    {
-      name: 'Enterprise',
-      price: 99,
-      period: 'per user/month',
-      description: 'Complete solution for large organizations with advanced needs',
-      features: [
-        'Unlimited users',
-        'Unlimited projects',
-        '1TB storage',
-        'All integrations',
-        'Advanced analytics',
-        'Custom branding',
-        'SSO integration',
-        'Audit logs',
-        '24/7 support',
-        'Dedicated success manager',
-        'Custom workflows',
-        'Advanced security',
-        'Multi-tenant support',
-        'White-label options'
-      ],
-      cta: 'Contact Sales',
-      color: 'from-yellow-500 to-orange-500'
-    }
-  ];
-
-  const testimonials: Testimonial[] = [
+  const testimonials = [
     {
       name: 'Sarah Johnson',
       role: 'VP of Engineering',
@@ -242,49 +148,63 @@ const LandingPage = () => {
       content: 'ProjectFlow\'s automation features saved us countless hours. The comprehensive analytics help us make better decisions and the security features give us peace of mind.',
       avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
       rating: 5
-    },
-    {
-      name: 'David Kim',
-      role: 'Product Manager',
-      company: 'InnovateLab',
-      content: 'The multi-tenant architecture is perfect for our agency. We can manage multiple client projects with complete isolation and custom branding.',
-      avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150',
-      rating: 5
     }
   ];
 
-  const demoFeatures: DemoFeature[] = [
+  const pricingPlans = [
     {
-      id: 'dashboard',
-      title: 'Intelligent Dashboard',
-      description: 'AI-powered insights and real-time project overview',
-      icon: BarChart3,
-      screenshot: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800',
-      highlights: ['Real-time metrics', 'AI predictions', 'Custom widgets', 'Team activity']
+      name: 'Starter',
+      price: 9,
+      period: 'per user/month',
+      description: 'Perfect for small teams getting started',
+      features: [
+        'Up to 10 users',
+        'Unlimited projects',
+        '10GB storage',
+        'Basic integrations',
+        'Email support',
+        'Mobile apps'
+      ],
+      cta: 'Start Free Trial',
+      color: 'from-blue-500 to-cyan-500'
     },
     {
-      id: 'projects',
-      title: 'Advanced Project Planning',
-      description: 'Comprehensive project management with Gantt charts and resource allocation',
-      icon: Target,
-      screenshot: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800',
-      highlights: ['Interactive Gantt', 'Resource planning', 'Budget tracking', 'Milestone management']
+      name: 'Professional',
+      price: 29,
+      period: 'per user/month',
+      description: 'Advanced features for growing teams',
+      features: [
+        'Up to 50 users',
+        'Unlimited projects',
+        '100GB storage',
+        'Advanced integrations',
+        'Time tracking',
+        'Custom fields',
+        'Priority support',
+        'Advanced analytics'
+      ],
+      popular: true,
+      cta: 'Start Free Trial',
+      color: 'from-purple-500 to-pink-500'
     },
     {
-      id: 'collaboration',
-      title: 'Team Collaboration Hub',
-      description: 'Real-time communication and file sharing for seamless teamwork',
-      icon: MessageSquare,
-      screenshot: 'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=800',
-      highlights: ['Live chat', 'Video calls', 'File sharing', 'Team channels']
-    },
-    {
-      id: 'automation',
-      title: 'Workflow Automation',
-      description: 'Intelligent automation that learns from your team\'s patterns',
-      icon: Zap,
-      screenshot: 'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=800',
-      highlights: ['Smart triggers', 'Custom workflows', 'AI suggestions', 'Integration hub']
+      name: 'Enterprise',
+      price: 99,
+      period: 'per user/month',
+      description: 'Complete solution for large organizations',
+      features: [
+        'Unlimited users',
+        'Unlimited projects',
+        '1TB storage',
+        'All integrations',
+        'Advanced analytics',
+        'Custom branding',
+        'SSO integration',
+        'Audit logs',
+        '24/7 support'
+      ],
+      cta: 'Contact Sales',
+      color: 'from-yellow-500 to-orange-500'
     }
   ];
 
@@ -297,17 +217,17 @@ const LandingPage = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentDemoFeature((prev) => (prev + 1) % demoFeatures.length);
+      setCurrentFeature((prev) => (prev + 1) % features.length);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
 
   const handleGetStarted = () => {
-    navigate('/auth?mode=register');
+    onNavigateToApp();
   };
 
   const handleRequestDemo = () => {
-    setShowDemo(true);
+    navigate('/demo');
   };
 
   const handleAccessRequest = async (e: React.FormEvent) => {
@@ -316,9 +236,6 @@ const LandingPage = () => {
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // In production, this would send to your backend
-    console.log('Access request submitted:', accessRequestForm);
     
     setIsSubmitting(false);
     setShowAccessRequest(false);
@@ -341,7 +258,6 @@ const LandingPage = () => {
   const handleNewsletterSignup = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
-      // In production, this would call an API
       alert(`Thank you for subscribing with ${email}!`);
       setEmail('');
     }
@@ -365,7 +281,12 @@ const LandingPage = () => {
               <a href="#demo" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Demo</a>
               <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
               <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Testimonials</a>
-              <a href="#contact" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Contact</a>
+              <button
+                onClick={() => navigate('/contact')}
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                Contact
+              </button>
               <button
                 onClick={handleRequestDemo}
                 className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
@@ -403,7 +324,12 @@ const LandingPage = () => {
               <a href="#demo" className="block py-2 text-gray-600 dark:text-gray-300">Demo</a>
               <a href="#pricing" className="block py-2 text-gray-600 dark:text-gray-300">Pricing</a>
               <a href="#testimonials" className="block py-2 text-gray-600 dark:text-gray-300">Testimonials</a>
-              <a href="#contact" className="block py-2 text-gray-600 dark:text-gray-300">Contact</a>
+              <button
+                onClick={() => navigate('/contact')}
+                className="block w-full text-left py-2 text-gray-600 dark:text-gray-300"
+              >
+                Contact
+              </button>
               <button
                 onClick={handleRequestDemo}
                 className="block w-full text-left py-2 text-blue-600 dark:text-blue-400"
@@ -433,48 +359,47 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-6">
-                <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium">
+                <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium">
                   <Brain className="h-4 w-4 mr-2" />
-                  AI-Powered Project Management Platform
+                  Next-Generation Project Management
                 </div>
-                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                  Transform Your
+                <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-tight">
+                  Project Management
                   <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block">
-                    Project Management
+                    Reimagined
                   </span>
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                  The most advanced project management platform with AI-powered insights, 
-                  real-time collaboration, enterprise-grade security, and intelligent automation 
-                  that adapts to your team's workflow.
+                  The world's most advanced project management platform. Powered by AI, built for scale, 
+                  designed for teams who demand excellence. Transform how your organization delivers projects.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleGetStarted}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-xl flex items-center justify-center"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-xl flex items-center justify-center group"
                 >
                   Start Free Trial
-                  <ArrowRight className="inline-block ml-2 h-5 w-5" />
+                  <ArrowRight className="inline-block ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={handleRequestDemo}
-                  className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl text-lg font-semibold hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center"
+                  className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl text-lg font-semibold hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center group"
                 >
-                  <Play className="h-5 w-5 mr-2" />
+                  <Play className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                   Watch Demo
                 </button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                   <span>14-day free trial</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>No credit card required</span>
+                  <span>No credit card</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
@@ -482,19 +407,19 @@ const LandingPage = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Enterprise-grade security</span>
+                  <span>Enterprise ready</span>
                 </div>
               </div>
             </div>
 
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl blur-3xl opacity-20 transform rotate-6"></div>
-              <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-1">
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-6">
+              <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-1">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6">
                   <img 
                     src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800" 
                     alt="ProjectFlow Dashboard"
-                    className="w-full h-auto rounded-lg shadow-2xl"
+                    className="w-full h-auto rounded-xl shadow-2xl"
                   />
                 </div>
               </div>
@@ -548,27 +473,19 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="space-y-4">
-                {demoFeatures.map((feature, index) => (
+                {features.map((feature, index) => (
                   <button
-                    key={feature.id}
-                    onClick={() => setCurrentDemoFeature(index)}
-                    className={`w-full text-left p-6 rounded-xl border-2 transition-all duration-300 ${
-                      index === currentDemoFeature
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg'
+                    key={index}
+                    onClick={() => setCurrentFeature(index)}
+                    className={`w-full text-left p-6 rounded-2xl border-2 transition-all duration-300 ${
+                      index === currentFeature
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-xl transform scale-105'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                   >
                     <div className="flex items-start space-x-4">
-                      <div className={`p-3 rounded-lg ${
-                        index === currentDemoFeature 
-                          ? 'bg-blue-100 dark:bg-blue-900/30' 
-                          : 'bg-gray-100 dark:bg-gray-700'
-                      }`}>
-                        <feature.icon className={`h-6 w-6 ${
-                          index === currentDemoFeature 
-                            ? 'text-blue-600 dark:text-blue-400' 
-                            : 'text-gray-600 dark:text-gray-400'
-                        }`} />
+                      <div className={`p-3 rounded-xl bg-gradient-to-r ${feature.color}`}>
+                        <feature.icon className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -578,12 +495,12 @@ const LandingPage = () => {
                           {feature.description}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {feature.highlights.map((highlight, idx) => (
+                          {feature.features.map((item, idx) => (
                             <span
                               key={idx}
                               className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded"
                             >
-                              {highlight}
+                              {item}
                             </span>
                           ))}
                         </div>
@@ -595,15 +512,15 @@ const LandingPage = () => {
               
               <div className="flex space-x-4">
                 <button
-                  onClick={() => navigate('/dashboard')}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center"
+                  onClick={() => navigate('/demo')}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center transform hover:scale-105"
                 >
                   Try Interactive Demo
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </button>
                 <button
                   onClick={() => setShowAccessRequest(true)}
-                  className="flex-1 border-2 border-purple-500 text-purple-600 dark:text-purple-400 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                  className="flex-1 border-2 border-purple-500 text-purple-600 dark:text-purple-400 px-6 py-3 rounded-xl font-semibold hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
                 >
                   Request Access
                 </button>
@@ -611,20 +528,23 @@ const LandingPage = () => {
             </div>
 
             <div className="relative">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-1">
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-1">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6">
                   <img 
-                    src={demoFeatures[currentDemoFeature].screenshot}
-                    alt={demoFeatures[currentDemoFeature].title}
-                    className="w-full h-auto rounded-lg shadow-xl"
+                    src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800"
+                    alt={features[currentFeature].title}
+                    className="w-full h-auto rounded-xl shadow-xl"
                   />
                 </div>
               </div>
-              <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 rounded-lg px-3 py-2 shadow-lg">
+              <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-lg">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">Live Demo</span>
                 </div>
+              </div>
+              <div className="absolute bottom-4 right-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg shadow-lg">
+                <span className="text-sm font-medium">{features[currentFeature].title}</span>
               </div>
             </div>
           </div>
@@ -639,7 +559,7 @@ const LandingPage = () => {
               Everything you need to manage projects
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              From planning to execution, ProjectFlow provides all the tools your team needs to deliver exceptional results with AI-powered intelligence.
+              From planning to execution, ProjectFlow provides all the tools your team needs to deliver exceptional results.
             </p>
           </div>
 
@@ -647,11 +567,9 @@ const LandingPage = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:border-transparent"
-                style={{
-                  background: `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%), linear-gradient(135deg, ${feature.color.split(' ')[1]} 0%, ${feature.color.split(' ')[3]} 100%)`
-                }}
+                className="group bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:border-transparent relative overflow-hidden"
               >
+                <div className={`absolute inset-0 bg-gradient-to-r ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
                 <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                   <feature.icon className="h-8 w-8 text-white" />
                 </div>
@@ -772,14 +690,6 @@ const LandingPage = () => {
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
               Choose the plan that's right for your team. All plans include a 14-day free trial.
             </p>
-            <div className="inline-flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-              <button className="px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm font-medium">
-                Monthly
-              </button>
-              <button className="px-4 py-2 text-gray-600 dark:text-gray-400 font-medium">
-                Annual (Save 20%)
-              </button>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -834,69 +744,6 @@ const LandingPage = () => {
               </div>
             ))}
           </div>
-
-          <div className="text-center mt-12">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Need a custom plan for your organization?
-            </p>
-            <button
-              onClick={() => setShowAccessRequest(true)}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-lg"
-            >
-              Contact our sales team →
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Integration Showcase */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-              Integrates with your favorite tools
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Connect ProjectFlow with 100+ tools you already use
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            {[
-              { name: 'Slack', icon: '💬', color: 'bg-purple-100 dark:bg-purple-900/30', textColor: 'text-purple-600 dark:text-purple-400' },
-              { name: 'Google Drive', icon: '📁', color: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-600 dark:text-blue-400' },
-              { name: 'GitHub', icon: '🐙', color: 'bg-gray-100 dark:bg-gray-700', textColor: 'text-gray-600 dark:text-gray-400' },
-              { name: 'Jira', icon: '🎯', color: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-600 dark:text-blue-400' },
-              { name: 'Zoom', icon: '📹', color: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-600 dark:text-blue-400' },
-              { name: 'Figma', icon: '🎨', color: 'bg-purple-100 dark:bg-purple-900/30', textColor: 'text-purple-600 dark:text-purple-400' },
-              { name: 'Notion', icon: '📝', color: 'bg-gray-100 dark:bg-gray-700', textColor: 'text-gray-600 dark:text-gray-400' },
-              { name: 'Stripe', icon: '💳', color: 'bg-purple-100 dark:bg-purple-900/30', textColor: 'text-purple-600 dark:text-purple-400' },
-              { name: 'Salesforce', icon: '☁️', color: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-600 dark:text-blue-400' },
-              { name: 'Zapier', icon: '⚡', color: 'bg-orange-100 dark:bg-orange-900/30', textColor: 'text-orange-600 dark:text-orange-400' },
-              { name: 'Dropbox', icon: '📦', color: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-600 dark:text-blue-400' },
-              { name: 'Trello', icon: '📋', color: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-600 dark:text-blue-400' }
-            ].map((integration, index) => (
-              <div
-                key={index}
-                className={`${integration.color} rounded-2xl p-6 text-center hover:shadow-lg transition-all duration-300 transform hover:scale-105 group cursor-pointer`}
-              >
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">{integration.icon}</div>
-                <div className={`text-sm font-medium ${integration.textColor}`}>{integration.name}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Don't see your tool? We're constantly adding new integrations.
-            </p>
-            <button
-              onClick={() => setShowAccessRequest(true)}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold"
-            >
-              Request an integration →
-            </button>
-          </div>
         </div>
       </section>
 
@@ -927,169 +774,9 @@ const LandingPage = () => {
                 Request Enterprise Demo
               </button>
             </div>
-
-            <div className="flex justify-center space-x-8 text-blue-100">
-              <div className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5" />
-                <span>AI-Powered</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Shield className="h-5 w-5" />
-                <span>Enterprise Security</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Globe className="h-5 w-5" />
-                <span>Global Scale</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
-
-      {/* Newsletter */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Stay updated with ProjectFlow
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-            Get the latest updates, tips, and insights delivered to your inbox.
-          </p>
-          <form onSubmit={handleNewsletterSignup} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <button
-              type="submit"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-            >
-              Subscribe
-            </button>
-          </form>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">PF</span>
-                </div>
-                <span className="text-xl font-bold">ProjectFlow</span>
-              </div>
-              <p className="text-gray-400 max-w-xs">
-                The most advanced project management platform for modern teams. Built with AI, designed for scale.
-              </p>
-              <div className="flex space-x-4">
-                <Twitter className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer transition-colors" />
-                <Linkedin className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer transition-colors" />
-                <Github className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer transition-colors" />
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#integrations" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#security" className="hover:text-white transition-colors">Security</a></li>
-                <li><a href="#api" className="hover:text-white transition-colors">API</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#about" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#careers" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#blog" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#press" className="hover:text-white transition-colors">Press</a></li>
-                <li><a href="#partners" className="hover:text-white transition-colors">Partners</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#help" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#docs" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#community" className="hover:text-white transition-colors">Community</a></li>
-                <li><a href="#status" className="hover:text-white transition-colors">System Status</a></li>
-                <li><a href="#contact" className="hover:text-white transition-colors">Contact</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400">© 2024 ProjectFlow. All rights reserved.</p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#terms" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
-              <a href="#cookies" className="text-gray-400 hover:text-white transition-colors">Cookie Policy</a>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Demo Modal */}
-      {showDemo && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">ProjectFlow Interactive Demo</h3>
-              <button
-                onClick={() => setShowDemo(false)}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="p-8">
-              <div className="aspect-video bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-800 rounded-2xl flex items-center justify-center mb-8 border border-gray-200 dark:border-gray-600">
-                <div className="text-center space-y-6">
-                  <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center mx-auto">
-                    <Play className="h-12 w-12 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Interactive Demo</h4>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                      Experience ProjectFlow's full capabilities with our interactive demo environment
-                    </p>
-                    <button
-                      onClick={() => {
-                        setShowDemo(false);
-                        navigate('/dashboard');
-                      }}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-                    >
-                      Launch Interactive Demo
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {demoFeatures.map((feature, index) => (
-                  <div key={feature.id} className="text-center p-6 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                    <feature.icon className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{feature.title}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{feature.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Access Request Modal */}
       {showAccessRequest && (
@@ -1269,8 +956,74 @@ const LandingPage = () => {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">PF</span>
+                </div>
+                <span className="text-xl font-bold">ProjectFlow</span>
+              </div>
+              <p className="text-gray-400 max-w-xs">
+                The most advanced project management platform for modern teams. Built with AI, designed for scale.
+              </p>
+              <div className="flex space-x-4">
+                <Twitter className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer transition-colors" />
+                <Linkedin className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer transition-colors" />
+                <Github className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer transition-colors" />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-4">Product</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#integrations" className="hover:text-white transition-colors">Integrations</a></li>
+                <li><a href="#security" className="hover:text-white transition-colors">Security</a></li>
+                <li><a href="#api" className="hover:text-white transition-colors">API</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-4">Company</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#about" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="#careers" className="hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#blog" className="hover:text-white transition-colors">Blog</a></li>
+                <li><a href="#press" className="hover:text-white transition-colors">Press</a></li>
+                <li><a href="#partners" className="hover:text-white transition-colors">Partners</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#help" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#docs" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#community" className="hover:text-white transition-colors">Community</a></li>
+                <li><a href="#status" className="hover:text-white transition-colors">System Status</a></li>
+                <li><button onClick={() => navigate('/contact')} className="hover:text-white transition-colors">Contact</button></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-400">© 2024 ProjectFlow. All rights reserved.</p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <a href="#privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+              <a href="#terms" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+              <a href="#cookies" className="text-gray-400 hover:text-white transition-colors">Cookie Policy</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
 
-export default LandingPage;
+export default ClientWebsite;

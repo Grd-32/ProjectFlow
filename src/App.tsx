@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './components/MultiLanguageSupport';
 import { UserProvider } from './contexts/UserContext';
@@ -14,11 +14,16 @@ import { IntegrationProvider } from './contexts/IntegrationContext';
 import { AIProvider } from './contexts/AIContext';
 import { useRealTimeSync } from './hooks/useRealTimeSync';
 import Layout from './components/Layout';
-import MultiTenantAuth from './components/MultiTenantAuth';
 import OfflineMode from './components/OfflineMode';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import LandingPage from './pages/LandingPage';
+import ContactPage from './pages/ContactPage';
+import DemoPage from './pages/DemoPage';
+import ClientWebsite from './components/ClientWebsite';
+import AccessRequestModal from './components/AccessRequestModal';
+import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import Projects from './pages/Projects';
@@ -32,6 +37,7 @@ import Settings from './pages/Settings';
 import ProjectManagement from './pages/ProjectManagement';
 import { useState, useEffect } from 'react';
 
+
 // Component to initialize real-time sync
 const SyncInitializer = () => {
   useRealTimeSync();
@@ -43,6 +49,8 @@ function App() {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showClientWebsite, setShowClientWebsite] = useState(true);
+  const [showAccessRequest, setShowAccessRequest] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -64,6 +72,25 @@ function App() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Show client website first
+  if (showClientWebsite) {
+    return (
+      <ErrorBoundary>
+        <ThemeProvider>
+          <LanguageProvider>
+            <div>
+              <ClientWebsite onNavigateToApp={() => setShowClientWebsite(false)} />
+              <AccessRequestModal 
+                isOpen={showAccessRequest} 
+                onClose={() => setShowAccessRequest(false)} 
+              />
+            </div>
+          </LanguageProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
+    );
+  }
 
   if (isLoading) {
     return <LoadingSpinner fullScreen text="Initializing ProjectFlow..." size="lg" />;
