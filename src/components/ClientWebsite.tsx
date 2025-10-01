@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -55,7 +55,7 @@ interface ClientWebsiteProps {
 }
 
 const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [showDemo, setShowDemo] = useState(false);
@@ -226,9 +226,9 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
     onNavigateToApp();
   };
 
-  const handleRequestDemo = () => {
-    navigate('/demo');
-  };
+  // const handleRequestDemo = () => {
+  //   navigate('/demo');
+  // };
 
   const handleAccessRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,7 +288,7 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
                 Contact
               </button>
               <button
-                onClick={handleRequestDemo}
+              
                 className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
               >
                 View Demo
