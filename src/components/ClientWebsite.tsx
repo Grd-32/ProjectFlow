@@ -1009,7 +1009,7 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
                 <li><a href="#status" className="hover:text-white transition-colors">System Status</a></li>
                 <li>
                   <button 
-                    {/* onClick={() => navigate('/contact')}  */}
+                    
                     className="hover:text-white transition-colors">Contact</button></li>
               </ul>
             </div>
