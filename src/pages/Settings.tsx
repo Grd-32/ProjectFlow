@@ -6,7 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../components/MultiLanguageSupport';
 import { useTenant } from '../contexts/TenantContext';
 import { User, Shield, Bell, Palette, Globe, Zap, Database, Key, Mail, Smartphone, Monitor, Lock, Eye, Download, Upload, RefreshCw, Save, AlertTriangle, CheckCircle, Settings as SettingsIcon, Users, Building, CreditCard, FileText, Calendar, Clock, Trash2, Plus, CreditCard as Edit3 } from 'lucide-react';
-import { BillingManager } from '../components/BillingManager';
+import BillingManager from '../components/BillingManager';
 import { SecurityAuditLog } from '../components/SecurityAuditLog';
 
 interface SettingsTab {
