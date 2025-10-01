@@ -331,7 +331,7 @@ const ClientWebsite: React.FC<ClientWebsiteProps> = ({ onNavigateToApp }) => {
                 Contact
               </button>
               <button
-                onClick={handleRequestDemo}
+
                 className="block w-full text-left py-2 text-blue-600 dark:text-blue-400"
               >
                 View Demo
