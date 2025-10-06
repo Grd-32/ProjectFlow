@@ -1,11 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './components/MultiLanguageSupport';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { TenantProvider } from './contexts/TenantContext';
 import { UserProvider } from './contexts/UserContext';
 import { TaskProvider } from './contexts/TaskContext';
 import { ProjectProvider } from './contexts/ProjectContext';
-import { NotificationProvider } from './contexts/NotificationContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import { TimeTrackingProvider } from './contexts/TimeTrackingContext';
@@ -13,7 +15,11 @@ import { ChatProvider } from './contexts/ChatContext';
 import { IntegrationProvider } from './contexts/IntegrationContext';
 import { AIProvider } from './contexts/AIContext';
 import { useRealTimeSync } from './hooks/useRealTimeSync';
+import { useAuth } from './contexts/AuthContext';
+import { useTenant } from './contexts/TenantContext';
 import Layout from './components/Layout';
+import TrialBanner from './components/TrialBanner';
+import OnboardingFlow from './components/OnboardingFlow';
 import OfflineMode from './components/OfflineMode';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -21,9 +27,7 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import LandingPage from './pages/LandingPage';
 import ContactPage from './pages/ContactPage';
 import DemoPage from './pages/DemoPage';
-import ClientWebsite from './components/ClientWebsite';
-import AccessRequestModal from './components/AccessRequestModal';
-import AuthPage from './pages/AuthPage';
+import MultiTenantAuth from './components/MultiTenantAuth';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import Projects from './pages/Projects';
@@ -35,7 +39,7 @@ import Users from './pages/Users';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import ProjectManagement from './pages/ProjectManagement';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 
 // Component to initialize real-time sync
@@ -44,28 +48,19 @@ const SyncInitializer = () => {
   return null;
 };
 
-function App() {
+// Main App Content Component
+const AppContent = () => {
+  const { user, isLoading: authLoading } = useAuth();
+  const { currentTenant, trialInfo, isLoading: tenantLoading } = useTenant();
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showClientWebsite, setShowClientWebsite] = useState(true);
-  const [showAccessRequest, setShowAccessRequest] = useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // Simulate app initialization
-    setTimeout(() => {
-      setIsLoading(false);
-      // Check if user is already authenticated
-      const authToken = localStorage.getItem('auth-token');
-      setIsAuthenticated(!!authToken);
-    }, 2000);
     
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -73,94 +68,101 @@ function App() {
     };
   }, []);
 
-  // Show client website first
-  if (showClientWebsite) {
+  React.useEffect(() => {
+    // Show onboarding for new tenants
+    if (currentTenant && !currentTenant.settings.onboardingCompleted) {
+      setShowOnboarding(true);
+    }
+  }, [currentTenant]);
+
+  if (authLoading || tenantLoading) {
+    return <LoadingSpinner fullScreen text="Loading ProjectFlow..." size="lg" />;
+  }
+
+  if (!user) {
     return (
-      <ErrorBoundary>
-        <ThemeProvider>
-          <LanguageProvider>
-            <div>
-              <ClientWebsite onNavigateToApp={() => setShowClientWebsite(false)} />
-              <AccessRequestModal 
-                isOpen={showAccessRequest} 
-                onClose={() => setShowAccessRequest(false)} 
-              />
-            </div>
-          </LanguageProvider>
-        </ThemeProvider>
-      </ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/demo" element={<DemoPage />} />
+          <Route path="/auth" element={<MultiTenantAuth onAuthSuccess={() => window.location.reload()} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
     );
   }
 
-  if (isLoading) {
-    return <LoadingSpinner fullScreen text="Initializing ProjectFlow..." size="lg" />;
+  if (!currentTenant) {
+    return <MultiTenantAuth onAuthSuccess={() => window.location.reload()} />;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <ErrorBoundary>
-        <ThemeProvider>
-          <LanguageProvider>
-            <UserProvider>
-              <NotificationProvider>
-                <TenantProvider>
-                  <MultiTenantAuth onAuthSuccess={() => {
-                    localStorage.setItem('auth-token', 'demo-token');
-                    setIsAuthenticated(true);
-                  }} />
-                </TenantProvider>
-              </NotificationProvider>
-            </UserProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </ErrorBoundary>
-    );
-  }
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {trialInfo?.isActive && <TrialBanner />}
+        
+        <Layout>
+          <SyncInitializer />
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/goals" element={<Goals />} />
+            <Route path="/docs" element={<Docs />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/automations" element={<Automations />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/project-management" element={<ProjectManagement />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+          
+          <OfflineMode isOnline={isOnline} />
+          <PWAInstallPrompt />
+        </Layout>
+        
+        <OnboardingFlow
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      </div>
+    </Router>
+  );
+};
 
+function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <LanguageProvider>
-          <UserProvider>
-            <NotificationProvider>
-              <SettingsProvider>
-                <IntegrationProvider>
-                  <WorkspaceProvider>
-                    <TimeTrackingProvider>
-                      <AIProvider>
-                        <ChatProvider>
-                          <TaskProvider>
-                            <ProjectProvider>
-                              <Router>
-                                <Layout voiceEnabled={voiceEnabled} onToggleVoice={() => setVoiceEnabled(!voiceEnabled)}>
-                                  <SyncInitializer />
-                                  <Routes>
-                                    <Route path="/" element={<Dashboard />} />
-                                    <Route path="/tasks" element={<Tasks />} />
-                                    <Route path="/projects" element={<Projects />} />
-                                    <Route path="/goals" element={<Goals />} />
-                                    <Route path="/docs" element={<Docs />} />
-                                    <Route path="/calendar" element={<Calendar />} />
-                                    <Route path="/automations" element={<Automations />} />
-                                    <Route path="/users" element={<Users />} />
-                                    <Route path="/project-management" element={<ProjectManagement />} />
-                                    <Route path="/reports" element={<Reports />} />
-                                    <Route path="/settings" element={<Settings />} />
-                                  </Routes>
-                                  <OfflineMode />
-                                  <PWAInstallPrompt />
-                                </Layout>
-                              </Router>
-                            </ProjectProvider>
-                          </TaskProvider>
-                        </ChatProvider>
-                      </AIProvider>
-                    </TimeTrackingProvider>
-                  </WorkspaceProvider>
-                </IntegrationProvider>
-              </SettingsProvider>
-            </NotificationProvider>
-          </UserProvider>
+          <NotificationProvider>
+            <AuthProvider>
+              <TenantProvider>
+                <UserProvider>
+                  <SettingsProvider>
+                    <IntegrationProvider>
+                      <WorkspaceProvider>
+                        <TimeTrackingProvider>
+                          <AIProvider>
+                            <ChatProvider>
+                              <TaskProvider>
+                                <ProjectProvider>
+                                  <AppContent />
+                                </ProjectProvider>
+                              </TaskProvider>
+                            </ChatProvider>
+                          </AIProvider>
+                        </TimeTrackingProvider>
+                      </WorkspaceProvider>
+                    </IntegrationProvider>
+                  </SettingsProvider>
+                </UserProvider>
+              </TenantProvider>
+            </AuthProvider>
+          </NotificationProvider>
         </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>

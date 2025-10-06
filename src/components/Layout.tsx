@@ -3,15 +3,15 @@ import Sidebar from './Sidebar';
 import TopNavigation from './TopNavigation';
 import ResponsiveLayout from './ResponsiveLayout';
 import MobileNavigation from './MobileNavigation';
-import VoiceCommands from './VoiceCommands';
+import { useState } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
-  voiceEnabled: boolean;
-  onToggleVoice: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, voiceEnabled, onToggleVoice }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <ResponsiveLayout
@@ -23,7 +23,6 @@ const Layout: React.FC<LayoutProps> = ({ children, voiceEnabled, onToggleVoice }
         </div>
       </ResponsiveLayout>
       <MobileNavigation />
-      <VoiceCommands isEnabled={voiceEnabled} onToggle={onToggleVoice} />
     </div>
   );
 };
