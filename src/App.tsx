@@ -129,6 +129,7 @@ const AppContent = () => {
           onComplete={() => setShowOnboarding(false)}
         />
       </div>
+      <Route path="/demo" element={<DemoPage />} />
     </Router>
   );
 };
