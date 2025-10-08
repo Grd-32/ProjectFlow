@@ -404,6 +404,60 @@ const AuthPage = () => {
                 )}
               </button>
 
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginData({
+                    email: 'demo@demo.com',
+                    password: 'demo123',
+                    tenantDomain: 'demo'
+                  });
+                  setTimeout(() => {
+                    setIsLoading(true);
+                    setTimeout(() => {
+                      setCurrentUser({
+                        id: '66666666-6666-6666-6666-666666666666',
+                        name: 'Demo User',
+                        email: 'demo@demo.com',
+                        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Demo',
+                        initials: 'DU',
+                        role: 'Admin',
+                        department: 'Management',
+                        status: 'Active',
+                        lastLogin: new Date().toISOString(),
+                        createdAt: '2024-01-01T00:00:00Z'
+                      });
+                      addNotification({
+                        type: 'success',
+                        title: 'Welcome to Demo!',
+                        message: 'You are now logged in with demo account. All data is real and stored in Supabase.',
+                        userId: '66666666-6666-6666-6666-666666666666',
+                        relatedEntity: {
+                          type: 'user',
+                          id: '66666666-6666-6666-6666-666666666666',
+                          name: 'Demo Login'
+                        }
+                      });
+                      navigate('/dashboard');
+                      setIsLoading(false);
+                    }, 1000);
+                  }, 100);
+                }}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+              >
+                <Zap className="h-4 w-4" />
+                <span>Try Demo Account</span>
+              </button>
+
               <div className="text-center">
                 <button
                   type="button"
