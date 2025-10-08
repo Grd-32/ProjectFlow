@@ -79,7 +79,7 @@ const AppContent = () => {
     return <LoadingSpinner fullScreen text="Loading ProjectFlow..." size="lg" />;
   }
 
-  if (!user) {
+  // if (!user) {
     return (
       <Router>
         <Routes>
@@ -91,7 +91,7 @@ const AppContent = () => {
         </Routes>
       </Router>
     );
-  }
+  // }
 
   if (!currentTenant) {
     return <MultiTenantAuth onAuthSuccess={() => window.location.reload()} />;
