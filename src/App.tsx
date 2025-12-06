@@ -81,8 +81,8 @@ const AppContent = () => {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/demo" element={<DemoPage />} />
+          {/* <Route path="/contacts */}
+          {/* <Route path="/demo" element={<DemoPage />} /> */}
           <Route path="/auth" element={<MultiTenantAuth onAuthSuccess={() => window.location.reload()} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
