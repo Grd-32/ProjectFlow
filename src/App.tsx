@@ -76,19 +76,6 @@ const AppContent = () => {
     return <LoadingSpinner fullScreen text="Loading ProjectFlow..." size="lg" />;
   }
 
-  // if (!user) {
-    return (
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          {/* <Route path="/contacts */}
-          {/* <Route path="/demo" element={<DemoPage />} /> */}
-          <Route path="/auth" element={<MultiTenantAuth onAuthSuccess={() => window.location.reload()} />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    );
-  // }
 
   if (!currentTenant) {
     return <MultiTenantAuth onAuthSuccess={() => window.location.reload()} />;
@@ -119,14 +106,13 @@ const AppContent = () => {
           <OfflineMode isOnline={isOnline} />
           <PWAInstallPrompt />
         </Layout>
-        
+
         <OnboardingFlow
           isOpen={showOnboarding}
           onClose={() => setShowOnboarding(false)}
           onComplete={() => setShowOnboarding(false)}
         />
       </div>
-      <Route path="/demo" element={<DemoPage />} />
     </Router>
   );
 };
