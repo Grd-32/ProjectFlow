@@ -123,7 +123,7 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <NotificationProvider>
-            <AuthProvider>
+            {/* <AuthProvider> */}
               <TenantProvider>
                 <UserProvider>
                   <SettingsProvider>
@@ -145,7 +145,7 @@ function App() {
                   </SettingsProvider>
                 </UserProvider>
               </TenantProvider>
-            </AuthProvider>
+            {/* </AuthProvider> */}
           </NotificationProvider>
         </LanguageProvider>
       </ThemeProvider>
