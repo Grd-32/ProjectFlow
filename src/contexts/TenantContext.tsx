@@ -128,26 +128,60 @@ const PLAN_CONFIGS = {
   }
 };
 
+const DEMO_TENANT: Tenant = {
+  id: 'demo-tenant-001',
+  name: 'Demo Organization',
+  domain: 'demo.projectflow.app',
+  subdomain: 'demo',
+  plan: 'professional',
+  status: 'active',
+  trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  settings: {
+    maxUsers: 50,
+    maxProjects: -1,
+    maxStorage: 100,
+    features: ['basic_features', 'advanced_analytics', 'integrations', 'time_tracking', 'priority_support'],
+    customBranding: false,
+    apiAccess: true,
+    ssoEnabled: false,
+    auditLogs: true,
+    onboardingCompleted: true
+  },
+  billing: {
+    amount: 2900,
+    currency: 'USD'
+  },
+  usage: {
+    users: 6,
+    projects: 3,
+    storage: 2.5,
+    apiCalls: 1250,
+    lastUpdated: new Date().toISOString()
+  },
+  owner: {
+    id: 'demo-user-001',
+    name: 'Demo User',
+    email: 'demo@demo.com'
+  },
+  createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+  updatedAt: new Date().toISOString()
+};
+
 export const TenantProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { addNotification } = useNotification();
-  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(DEMO_TENANT);
+  const [tenants, setTenants] = useState<Tenant[]>([DEMO_TENANT]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      loadUserTenants();
-    } else {
-      setCurrentTenant(null);
-      setTenants([]);
-      setSubscription(null);
-      setTrialInfo(null);
-      setIsLoading(false);
-    }
-  }, [user]);
+    // Always use demo tenant - skip authentication
+    setCurrentTenant(DEMO_TENANT);
+    setTenants([DEMO_TENANT]);
+    checkTrialStatus();
+  }, []);
 
   const loadUserTenants = async () => {
     if (!user) return;
@@ -586,8 +620,9 @@ export const TenantProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
-  const checkTrialStatus = async (): Promise<TrialInfo> => {
-    if (!currentTenant) {
+  const checkTrialStatus = async (tenant?: Tenant): Promise<TrialInfo> => {
+    const tenantToCheck = tenant || currentTenant;
+    if (!tenantToCheck) {
       const emptyTrialInfo: TrialInfo = {
         isActive: false,
         daysRemaining: 0,
@@ -600,11 +635,11 @@ export const TenantProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
 
     const now = new Date();
-    const trialEnd = currentTenant.trialEndsAt ? new Date(currentTenant.trialEndsAt) : null;
-    const isTrialActive = currentTenant.status === 'trial' && trialEnd && trialEnd > now;
+    const trialEnd = tenantToCheck.trialEndsAt ? new Date(tenantToCheck.trialEndsAt) : null;
+    const isTrialActive = tenantToCheck.status === 'trial' && trialEnd && trialEnd > now;
     const daysRemaining = trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
 
-    const planConfig = PLAN_CONFIGS[currentTenant.plan as keyof typeof PLAN_CONFIGS];
+    const planConfig = PLAN_CONFIGS[tenantToCheck.plan as keyof typeof PLAN_CONFIGS];
 
     const trialInfoData: TrialInfo = {
       isActive: isTrialActive,
